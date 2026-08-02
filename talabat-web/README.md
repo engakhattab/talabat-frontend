@@ -1,26 +1,13 @@
-# Talabat Web
+# TalabatWeb
 
-Angular customer frontend for the Talabat backend.
-
-## Backend hosts
-
-Start these backend projects from `D:\link-dev\talabat\src\Talabat` before using the app:
-
-```bash
-dotnet run --project Talabat.Identity/Talabat.Identity.csproj --launch-profile https
-dotnet run --project Talabat.API/Talabat.Customer.API.csproj --launch-profile https
-```
-
-The customer app reads the public catalog from `https://localhost:7056/api/catalog`. Protected
-customer flows such as cart, checkout, profile, and orders require tokens from
-`https://localhost:7237`.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.2.
 
 ## Development server
 
 To start a local development server, run:
 
 ```bash
-npm start
+ng serve
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
@@ -44,7 +31,7 @@ ng generate --help
 To build the project run:
 
 ```bash
-npm run build
+ng build
 ```
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
@@ -54,7 +41,7 @@ This will compile your project and store the build artifacts in the `dist/` dire
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
 
 ```bash
-npm test -- --watch=false
+ng test
 ```
 
 ## Running end-to-end tests
