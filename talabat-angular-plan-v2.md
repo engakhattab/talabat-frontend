@@ -435,8 +435,8 @@ styling is Phase 5.
 ### Phase-specific notes
 
 **Phase 2** — `openapi-generator-cli`, `typescript-angular`, `serviceSuffix: ApiService`,
-`stringEnums: true`, `providedInRoot: true`. Verify the three 204 operations produce
-`Observable<void>`.
+`stringEnums: true`, `providedInRoot: true`. Verify the two 204 operations,
+`RemoveAddress` and `ClearCart`, produce `Observable<void>`.
 
 **Phase 6 — highest risk.** Verify your OIDC library supports Angular 22 **before** starting.
 Check `angular-auth-oidc-client` peer deps; fallback is `oidc-client-ts` wrapped in a thin service.

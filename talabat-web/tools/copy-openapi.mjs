@@ -6,8 +6,6 @@ const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const backendRoot = resolve(workspaceRoot, '..', '..', 'talabat');
 const openApiDir = resolve(workspaceRoot, 'openapi');
 
-mkdirSync(openApiDir, { recursive: true });
-
 const documents = [
   {
     source: resolve(backendRoot, 'src', 'Talabat', 'Talabat.API', 'openapi', 'customer-api.json'),
@@ -26,15 +24,15 @@ const documents = [
   },
 ];
 
-for (const document of documents) {
-  copyFileSync(document.source, document.target);
-  normalizeNumericSchemas(document.target);
+export function normalizeNumericSchemas(filePath) {
+  const document = JSON.parse(readFileSync(filePath, 'utf8'));
+  normalizeNumericDocument(document);
+  writeFileSync(`${filePath}`, `${JSON.stringify(document, null, 2)}\n`);
 }
 
-function normalizeNumericSchemas(filePath) {
-  const document = JSON.parse(readFileSync(filePath, 'utf8'));
+export function normalizeNumericDocument(document) {
   visit(document);
-  writeFileSync(`${filePath}`, `${JSON.stringify(document, null, 2)}\n`);
+  return document;
 }
 
 function visit(value) {
@@ -61,5 +59,17 @@ function visit(value) {
 
   for (const child of Object.values(value)) {
     visit(child);
+  }
+}
+
+const isDirectExecution =
+  process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  mkdirSync(openApiDir, { recursive: true });
+
+  for (const document of documents) {
+    copyFileSync(document.source, document.target);
+    normalizeNumericSchemas(document.target);
   }
 }
