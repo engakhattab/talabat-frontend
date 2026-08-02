@@ -1,0 +1,13 @@
+export * from './addresses.service';
+import { AddressesApiService } from './addresses.service';
+export * from './cart.service';
+import { CartApiService } from './cart.service';
+export * from './catalog.service';
+import { CatalogApiService } from './catalog.service';
+export * from './checkout.service';
+import { CheckoutApiService } from './checkout.service';
+export * from './customer.service';
+import { CustomerApiService } from './customer.service';
+export * from './orders.service';
+import { OrdersApiService } from './orders.service';
+export const APIS = [AddressesApiService, CartApiService, CatalogApiService, CheckoutApiService, CustomerApiService, OrdersApiService];

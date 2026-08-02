@@ -4,6 +4,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
+      "@talabat/api-customer": ["./projects/api-customer/src/index.ts"],
       "@talabat/core-auth": ["./projects/core-auth/src/public-api.ts"],
       "@talabat/core-config": ["./projects/core-config/src/public-api.ts"],
       "@talabat/core-http": ["./projects/core-http/src/public-api.ts"],
@@ -41,6 +42,9 @@
     },
     {
       "path": "./projects/core-config/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/api-customer/tsconfig.lib.json"
     },
     {
       "path": "./projects/core-auth/tsconfig.lib.json"

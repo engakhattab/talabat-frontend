@@ -1,0 +1,17 @@
+{
+  "generatorName": "typescript-angular",
+  "inputSpec": "openapi/customer-api.json",
+  "output": "projects/api-customer/src",
+  "additionalProperties": {
+    "npmName": "@talabat/api-customer",
+    "serviceSuffix": "ApiService",
+    "stringEnums": true,
+    "providedInRoot": true,
+    "useSingleRequestParameter": true,
+    "withInterfaces": false,
+    "supportsES6": true,
+    "fileNaming": "kebab-case",
+    "enumPropertyNaming": "PascalCase",
+    "ngVersion": "22.0.0"
+  }
+}

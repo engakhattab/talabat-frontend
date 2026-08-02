@@ -96,6 +96,26 @@
         }
       }
     },
+    "api-customer": {
+      "projectType": "library",
+      "root": "projects/api-customer",
+      "sourceRoot": "projects/api-customer/src",
+      "prefix": "tal",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/api-customer/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/api-customer/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    },
     "core-auth": {
       "projectType": "library",
       "root": "projects/core-auth",
