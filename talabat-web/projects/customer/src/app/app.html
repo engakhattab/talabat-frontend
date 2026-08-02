@@ -1,0 +1,94 @@
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Talabat customer app</p>
+      <h1>Browse restaurants and menus</h1>
+    </div>
+    <button type="button" class="refresh" (click)="loadRestaurants()" [disabled]="isLoadingRestaurants()">
+      Refresh
+    </button>
+  </header>
+
+  @if (error()) {
+    <section class="status status-error">
+      <strong>Connection problem</strong>
+      <span>{{ error() }}</span>
+    </section>
+  } @else {
+    <section class="status">
+      <strong>Connected to catalog</strong>
+      <span>{{ apiBaseUrl }}/api/catalog</span>
+    </section>
+  }
+
+  <section class="workspace">
+    <aside class="restaurants" aria-label="Restaurants">
+      <div class="section-heading">
+        <h2>Restaurants</h2>
+        <span>{{ restaurants().length }} found</span>
+      </div>
+
+      @if (isLoadingRestaurants()) {
+        <p class="empty">Loading restaurants...</p>
+      } @else if (restaurants().length === 0) {
+        <p class="empty">No restaurants returned by the backend.</p>
+      } @else {
+        <div class="restaurant-list">
+          @for (restaurant of restaurants(); track restaurant.id) {
+            <button
+              type="button"
+              class="restaurant"
+              [class.selected]="selectedRestaurant()?.id === restaurant.id"
+              (click)="loadMenu(restaurant)"
+            >
+              <span>
+                <strong>{{ restaurant.name }}</strong>
+                <small>{{ restaurant.description }}</small>
+              </span>
+              <em [class.closed]="!restaurant.isOpen">{{ restaurant.isOpen ? 'Open' : 'Closed' }}</em>
+            </button>
+          }
+        </div>
+      }
+    </aside>
+
+    <section class="menu" aria-label="Menu">
+      <div class="section-heading">
+        <h2>{{ selectedRestaurant()?.name ?? 'Menu' }}</h2>
+        <span>{{ availableProducts().length }} available</span>
+      </div>
+
+      @if (isLoadingMenu()) {
+        <p class="empty">Loading menu...</p>
+      } @else if (!menu()) {
+        <p class="empty">Select a restaurant to inspect its menu.</p>
+      } @else {
+        <div class="menu-grid">
+          @for (product of menu()!.products; track product.id) {
+            <article class="product" [class.unavailable]="!product.isAvailable">
+              <div>
+                <h3>{{ product.name }}</h3>
+                <p>{{ product.description }}</p>
+              </div>
+              <footer>
+                <strong>{{ money(product.currentPrice) }}</strong>
+                <span>{{ product.isAvailable ? 'Available' : 'Unavailable' }}</span>
+              </footer>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  </section>
+
+  <section class="integration">
+    <div>
+      <h2>Protected customer flows</h2>
+      <p>
+        Cart, checkout, profile, and order endpoints require a customer access token from
+        {{ identityBaseUrl }}. The backend CORS policy already allows this app on port 4200.
+      </p>
+    </div>
+    <a href="https://localhost:7056/swagger" target="_blank" rel="noopener">Customer API docs</a>
+  </section>
+</main>
