@@ -765,17 +765,7 @@
           "204": {
             "description": "No Content",
             "content": {
-              "application/json": {}
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
+              "application/json": { }
             }
           },
           "401": {
@@ -817,6 +807,16 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -838,7 +838,7 @@
           "204": {
             "description": "No Content",
             "content": {
-              "application/json": {}
+              "application/json": { }
             }
           },
           "401": {
@@ -901,7 +901,7 @@
           "204": {
             "description": "No Content",
             "content": {
-              "application/json": {}
+              "application/json": { }
             }
           },
           "401": {
@@ -974,23 +974,23 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "orderId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "customerId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "restaurantId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "status": {
             "$ref": "#/components/schemas/DeliveryStatus"
@@ -1033,23 +1033,23 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "orderId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "customerId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "restaurantId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "status": {
             "$ref": "#/components/schemas/DeliveryStatus"
@@ -1087,8 +1087,8 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -1128,18 +1128,18 @@
         "properties": {
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "orderId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "restaurantId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "format": "int32",
-            "type": "integer"
+            "type": "integer",
+            "format": "int32"
           },
           "status": {
             "$ref": "#/components/schemas/DeliveryStatus"
@@ -1166,9 +1166,10 @@
           },
           "status": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": "integer",
             "format": "int32",
             "nullable": true,
-            "type": "integer"
+            "x-nullable": true
           },
           "detail": {
             "type": "string",
@@ -1189,13 +1190,13 @@
         "properties": {
           "latitude": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "format": "double",
-            "type": "number"
+            "type": "number",
+            "format": "double"
           },
           "longitude": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "format": "double",
-            "type": "number"
+            "type": "number",
+            "format": "double"
           }
         }
       }
