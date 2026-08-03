@@ -1,5 +1,2 @@
-/*
- * Public API Surface of core-config
- */
-
-export * from './lib/core-config';
+export * from './lib/app-config';
+export * from './lib/provide-app-config';

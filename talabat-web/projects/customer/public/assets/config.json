@@ -1,0 +1,6 @@
+{
+  "identityAuthority": "https://localhost:7237",
+  "customerApiBaseUrl": "https://localhost:7056",
+  "clientId": "talabat-customer-spa",
+  "scopes": "openid profile roles customer.api offline_access"
+}
