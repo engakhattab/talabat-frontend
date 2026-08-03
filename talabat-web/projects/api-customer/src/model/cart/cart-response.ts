@@ -8,7 +8,7 @@
  * Do not edit the class manually.
  */
 import { CartLineItemDto } from './cart-line-item-dto';
-import { MoneyDto } from './money-dto';
+import { MoneyDto } from '../shared/money-dto';
 
 
 export interface CartResponse { 

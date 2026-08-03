@@ -1,6 +1,17 @@
 # @talabat/api-customer@1.0.0
 
-Generated Angular client for the customer API. Do not edit generated files directly; update the OpenAPI contract and run `npm run api:gen` from the workspace root.
+Generated Angular client for the customer API. Do not edit generated files directly; update the
+OpenAPI contract or the custom generator and run these commands from the workspace root:
+
+```bash
+npm run api:generator:build
+npm run api:gen:customer
+npm run api:verify
+```
+
+API services are grouped by OpenAPI operation tag. Models are grouped by transitive operation-tag
+usage at `model/<domain>/<model-file>.ts`; models used by multiple domains are generated once in
+`model/shared/`.
 
 OpenAPI document version: 1.0.0
 

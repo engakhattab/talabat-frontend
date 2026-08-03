@@ -192,20 +192,32 @@ npx openapi-generator-cli version-manager set 7.11.0
 Pinning the generator version matters: an unpinned generator regenerates differently on a different
 machine, producing spurious diffs.
 
+The feature-folder client uses the custom generator in
+`talabat-web/tools/talabat-openapi-generator`. It extends the exact pinned
+`TypeScriptAngularClientCodegen` and is built with the checked-in Maven Wrapper, so developers need
+Java 17+ but do not need a system Maven installation:
+
+```bash
+npm run api:generator:build
+```
+
 ## 2.4 Generator config
 
 `openapi/customer.config.json`:
 
 ```json
 {
-  "generatorName": "typescript-angular",
+  "generatorName": "talabat-typescript-angular",
   "inputSpec": "openapi/customer-api.json",
   "output": "projects/api-customer/src",
+  "templateDir": "openapi/templates/typescript-angular",
   "additionalProperties": {
     "npmName": "@talabat/api-customer",
     "serviceSuffix": "ApiService",
+    "serviceFileSuffix": "-api.service",
     "stringEnums": true,
     "providedInRoot": true,
+    "providedIn": "root",
     "useSingleRequestParameter": true,
     "withInterfaces": false,
     "supportsES6": true,
@@ -217,21 +229,29 @@ machine, producing spurious diffs.
 
 - `serviceSuffix: ApiService` prevents collisions with your own `CartStore` / `CatalogService`
 - `stringEnums: true` produces string union types rather than TypeScript `enum`
-- `providedInRoot: true` means no manual DI registration
+- `providedInRoot: true` preserves the Phase 2 setting; `providedIn: root` is the exact 7.11.0
+  generator option that guarantees no manual DI registration
 - `useSingleRequestParameter: true` gives `addCartItem({ productId, quantity })` instead of
   positional arguments — far more readable and resilient to parameter reordering
 
 ## 2.5 Generate
 
 ```bash
-npx openapi-generator-cli generate -c openapi/customer.config.json
+npm run api:gen:customer
 ```
 
-Add npm scripts:
+The launcher uses the OpenAPI npm CLI's `--custom-generator` support, which selects `;` for the
+Windows classpath and `:` on Linux/macOS. It first validates and cleans only
+`projects/api-customer/src`, so stale generated files cannot survive while Angular scaffolding is
+preserved.
+
+Root npm scripts:
 
 ```json
-"api:gen:customer": "openapi-generator-cli generate -c openapi/customer.config.json",
-"api:gen": "npm run api:copy && npm run api:gen:customer"
+"api:generator:build": "node tools/api-generator.mjs build",
+"api:gen:customer": "node tools/api-generator.mjs generate-customer",
+"api:gen": "npm run api:copy && npm run api:generator:build && npm run api:gen:customer",
+"api:verify": "node tools/verify-generated-api.mjs"
 ```
 
 ## 2.6 Wire the library into the workspace
@@ -249,6 +269,12 @@ Create `projects/api-customer/README.md`:
 Generated from `openapi/customer-api.json` by `npm run api:gen`.
 Any manual edit will be overwritten. To change this client, change the backend contract.
 ```
+
+Generated API services are nested by kebab-case OpenAPI tag. Models are grouped by business domain
+at `model/<domain>/<model-file>.ts`. The custom generator builds a reverse usage map from schemas to
+operations and follows schema references transitively. A model used by operations in multiple
+domains is generated once under `model/shared/`; it is never duplicated and requires no OpenAPI
+vendor extension.
 
 ## 2.7 Verification
 
@@ -271,7 +297,7 @@ Confirm the method names read as operation names, not path fragments:
 Then check:
 
 ```bash
-grep -rn ": any" projects/api-customer/src/api/     # must return nothing
+npm run api:verify
 ng build api-customer
 ```
 

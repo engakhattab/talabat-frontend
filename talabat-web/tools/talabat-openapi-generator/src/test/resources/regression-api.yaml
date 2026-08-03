@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: Talabat generator regression fixture
+  version: 1.0.0
+paths:
+  /history:
+    get:
+      tags: [Order History]
+      operationId: getOrderHistory
+      responses:
+        '200':
+          description: History response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedThing'
+  /history/composite:
+    get:
+      tags: [Order History]
+      operationId: getCompositeHistory
+      responses:
+        '200':
+          description: Composite response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompositeModel'
+  /history/{id}:
+    delete:
+      tags: [Order History]
+      operationId: deleteHistoryEntry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Deleted
+  /shared-items:
+    get:
+      tags: [Shared Items]
+      operationId: getSharedItems
+      responses:
+        '200':
+          description: Shared response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedItemsResponse'
+components:
+  schemas:
+    SimpleModel:
+      type: object
+      required: [displayName]
+      properties:
+        displayName:
+          type: string
+    SharedThing:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/DeliveryStatus'
+    CompositeModel:
+      type: object
+      required: [simple, shared]
+      properties:
+        simple:
+          $ref: '#/components/schemas/SimpleModel'
+        shared:
+          $ref: '#/components/schemas/SharedThing'
+    SharedItemsResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SharedThing'
+    DeliveryStatus:
+      type: string
+      enum: [pending, in_transit, delivered]

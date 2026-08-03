@@ -1,8 +1,8 @@
 {{#apiInfo}}
 {{#apis}}
 {{#operations}}
-export * from './{{ classFilename }}';
-import { {{ classname }} } from './{{ classFilename }}';
+export * from './{{ apiFilename }}';
+import { {{ classname }} } from './{{ apiFilename }}';
 {{/operations}}
 {{#withInterfaces}}
 export * from './{{ classFilename }}Interface';

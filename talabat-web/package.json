@@ -8,8 +8,10 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "api:copy": "node tools/copy-openapi.mjs",
-    "api:gen:customer": "openapi-generator-cli generate -c openapi/customer.config.json -o projects/api-customer/src -t openapi/templates/typescript-angular",
-    "api:gen": "npm run api:copy && npm run api:gen:customer",
+    "api:generator:build": "node tools/api-generator.mjs build",
+    "api:gen:customer": "node tools/api-generator.mjs generate-customer",
+    "api:gen": "npm run api:copy && npm run api:generator:build && npm run api:gen:customer",
+    "api:verify": "node tools/verify-generated-api.mjs",
     "test:openapi-tools": "node --test tools/copy-openapi.test.mjs"
   },
   "private": true,

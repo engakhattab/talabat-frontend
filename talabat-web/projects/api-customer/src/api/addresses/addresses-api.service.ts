@@ -13,39 +13,43 @@ import { Inject, Injectable, Optional }                      from '@angular/core
 import { HttpClient, HttpHeaders, HttpParams,
          HttpResponse, HttpEvent, HttpParameterCodec, HttpContext 
         }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
+import { CustomHttpParameterCodec }                          from '../../encoder';
 import { Observable }                                        from 'rxjs';
 
 type Observe = 'body' | 'response' | 'events';
 type RequestValue = string | number | boolean | Date | Blob | ReadonlyArray<unknown> | Record<string, unknown>;
 
 // @ts-ignore
-import { CreateProfileRequest } from '../model/create-profile-request';
+import { AddAddressRequest } from '../../model/addresses/add-address-request';
 // @ts-ignore
-import { ProblemDetails } from '../model/problem-details';
+import { AddressResponse } from '../../model/addresses/address-response';
 // @ts-ignore
-import { ProfileResponse } from '../model/profile-response';
+import { ProblemDetails } from '../../model/shared/problem-details';
 // @ts-ignore
-import { UpdateProfileRequest } from '../model/update-profile-request';
+import { ProfileResponse } from '../../model/shared/profile-response';
 
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS }                     from '../../variables';
+import { Configuration }                                     from '../../configuration';
 
 
-export interface CreateProfileRequestParams {
-    createProfileRequest: CreateProfileRequest;
+export interface AddAddressRequestParams {
+    addAddressRequest: AddAddressRequest;
 }
 
-export interface UpdateProfileRequestParams {
-    updateProfileRequest: UpdateProfileRequest;
+export interface RemoveAddressRequestParams {
+    addressId: number;
+}
+
+export interface SetDefaultAddressRequestParams {
+    addressId: number;
 }
 
 
 @Injectable({
   providedIn: 'root'
 })
-export class CustomerApiService {
+export class AddressesApiService {
 
     protected basePath = 'http://localhost';
     public defaultHeaders = new HttpHeaders();
@@ -113,13 +117,13 @@ export class CustomerApiService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createProfile(requestParameters: CreateProfileRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse>;
-    public createProfile(requestParameters: CreateProfileRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ProfileResponse>>;
-    public createProfile(requestParameters: CreateProfileRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ProfileResponse>>;
-    public createProfile(requestParameters: CreateProfileRequestParams, observe: Observe = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse | HttpResponse<ProfileResponse> | HttpEvent<ProfileResponse>> {
-        const createProfileRequest = requestParameters?.createProfileRequest;
-        if (createProfileRequest === null || createProfileRequest === undefined) {
-            throw new Error('Required parameter createProfileRequest was null or undefined when calling createProfile.');
+    public addAddress(requestParameters: AddAddressRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AddressResponse>;
+    public addAddress(requestParameters: AddAddressRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AddressResponse>>;
+    public addAddress(requestParameters: AddAddressRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AddressResponse>>;
+    public addAddress(requestParameters: AddAddressRequestParams, observe: Observe = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AddressResponse | HttpResponse<AddressResponse> | HttpEvent<AddressResponse>> {
+        const addAddressRequest = requestParameters?.addAddressRequest;
+        if (addAddressRequest === null || addAddressRequest === undefined) {
+            throw new Error('Required parameter addAddressRequest was null or undefined when calling addAddress.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -175,11 +179,11 @@ export class CustomerApiService {
             }
         }
 
-        let localVarPath = `/api/me/profile`;
-        return this.httpClient.request<ProfileResponse>('post', `${this.configuration.basePath}${localVarPath}`,
+        let localVarPath = `/api/me/addresses`;
+        return this.httpClient.request<AddressResponse>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: createProfileRequest,
+                body: addAddressRequest,
                 responseType: responseType_ as 'json',
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,
@@ -187,73 +191,7 @@ export class CustomerApiService {
                 transferCache: localVarTransferCache,
                 reportProgress: reportProgress
             }
-        ) as Observable<ProfileResponse | HttpResponse<ProfileResponse> | HttpEvent<ProfileResponse>>;
-    }
-
-    /**
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getProfile(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse>;
-    public getProfile(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ProfileResponse>>;
-    public getProfile(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ProfileResponse>>;
-    public getProfile(observe: Observe = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse | HttpResponse<ProfileResponse> | HttpEvent<ProfileResponse>> {
-
-        let localVarHeaders = this.defaultHeaders;
-
-        let localVarCredential: string | undefined;
-        // authentication (oauth2) required
-        localVarCredential = this.configuration.lookupCredential('oauth2');
-        if (localVarCredential) {
-            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
-        }
-
-        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
-        if (localVarHttpHeaderAcceptSelected === undefined) {
-            // to determine the Accept header
-            const httpHeaderAccepts: string[] = [
-                'application/json'
-            ];
-            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
-        }
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        let localVarHttpContext: HttpContext | undefined = options && options.context;
-        if (localVarHttpContext === undefined) {
-            localVarHttpContext = new HttpContext();
-        }
-
-        let localVarTransferCache: boolean | undefined = options && options.transferCache;
-        if (localVarTransferCache === undefined) {
-            localVarTransferCache = true;
-        }
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/api/me/profile`;
-        return this.httpClient.request<ProfileResponse>('get', `${this.configuration.basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: responseType_ as 'json',
-                withCredentials: this.configuration.withCredentials,
-                headers: localVarHeaders,
-                observe: observe as 'body',
-                transferCache: localVarTransferCache,
-                reportProgress: reportProgress
-            }
-        ) as Observable<ProfileResponse | HttpResponse<ProfileResponse> | HttpEvent<ProfileResponse>>;
+        ) as Observable<AddressResponse | HttpResponse<AddressResponse> | HttpEvent<AddressResponse>>;
     }
 
     /**
@@ -261,13 +199,13 @@ export class CustomerApiService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public updateProfile(requestParameters: UpdateProfileRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse>;
-    public updateProfile(requestParameters: UpdateProfileRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ProfileResponse>>;
-    public updateProfile(requestParameters: UpdateProfileRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ProfileResponse>>;
-    public updateProfile(requestParameters: UpdateProfileRequestParams, observe: Observe = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse | HttpResponse<ProfileResponse> | HttpEvent<ProfileResponse>> {
-        const updateProfileRequest = requestParameters?.updateProfileRequest;
-        if (updateProfileRequest === null || updateProfileRequest === undefined) {
-            throw new Error('Required parameter updateProfileRequest was null or undefined when calling updateProfile.');
+    public removeAddress(requestParameters: RemoveAddressRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<void>;
+    public removeAddress(requestParameters: RemoveAddressRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<void>>;
+    public removeAddress(requestParameters: RemoveAddressRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<void>>;
+    public removeAddress(requestParameters: RemoveAddressRequestParams, observe: Observe = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<void | HttpResponse<void> | HttpEvent<void>> {
+        const addressId = requestParameters?.addressId;
+        if (addressId === null || addressId === undefined) {
+            throw new Error('Required parameter addressId was null or undefined when calling removeAddress.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -302,15 +240,76 @@ export class CustomerApiService {
         }
 
 
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json',
-            'application/*+json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
         }
+
+        let localVarPath = `/api/me/addresses/${this.configuration.encodeParam({name: "addressId", value: addressId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        return this.httpClient.request<void>('delete', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: responseType_ as 'json',
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe as 'body',
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        ) as Observable<void | HttpResponse<void> | HttpEvent<void>>;
+    }
+
+    /**
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public setDefaultAddress(requestParameters: SetDefaultAddressRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse>;
+    public setDefaultAddress(requestParameters: SetDefaultAddressRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ProfileResponse>>;
+    public setDefaultAddress(requestParameters: SetDefaultAddressRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ProfileResponse>>;
+    public setDefaultAddress(requestParameters: SetDefaultAddressRequestParams, observe: Observe = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ProfileResponse | HttpResponse<ProfileResponse> | HttpEvent<ProfileResponse>> {
+        const addressId = requestParameters?.addressId;
+        if (addressId === null || addressId === undefined) {
+            throw new Error('Required parameter addressId was null or undefined when calling setDefaultAddress.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (oauth2) required
+        localVarCredential = this.configuration.lookupCredential('oauth2');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
 
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
@@ -323,11 +322,10 @@ export class CustomerApiService {
             }
         }
 
-        let localVarPath = `/api/me/profile`;
+        let localVarPath = `/api/me/addresses/${this.configuration.encodeParam({name: "addressId", value: addressId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/default`;
         return this.httpClient.request<ProfileResponse>('put', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: updateProfileRequest,
                 responseType: responseType_ as 'json',
                 withCredentials: this.configuration.withCredentials,
                 headers: localVarHeaders,

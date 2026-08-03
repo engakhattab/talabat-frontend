@@ -5,7 +5,7 @@ import { Inject, Injectable, Optional }                      from '@angular/core
 import { HttpClient, HttpHeaders, HttpParams,
          HttpResponse, HttpEvent, HttpParameterCodec{{#httpContextInOptions}}, HttpContext {{/httpContextInOptions}}
         }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
+import { CustomHttpParameterCodec }                          from '../../encoder';
 import { Observable }                                        from 'rxjs';
 
 type Observe = 'body' | 'response' | 'events';
@@ -17,8 +17,8 @@ import { {{ classname }} } from '{{ filename }}';
 {{/imports}}
 
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { {{configurationClassName}} }                                     from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS }                     from '../../variables';
+import { {{configurationClassName}} }                                     from '../../configuration';
 {{#withInterfaces}}
 import {
     {{classname}}Interface{{#useSingleRequestParameter}}{{#operations}}{{#operation}}{{#allParams.0}},

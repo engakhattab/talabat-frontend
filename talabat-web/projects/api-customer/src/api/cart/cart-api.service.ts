@@ -13,24 +13,24 @@ import { Inject, Injectable, Optional }                      from '@angular/core
 import { HttpClient, HttpHeaders, HttpParams,
          HttpResponse, HttpEvent, HttpParameterCodec, HttpContext 
         }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
+import { CustomHttpParameterCodec }                          from '../../encoder';
 import { Observable }                                        from 'rxjs';
 
 type Observe = 'body' | 'response' | 'events';
 type RequestValue = string | number | boolean | Date | Blob | ReadonlyArray<unknown> | Record<string, unknown>;
 
 // @ts-ignore
-import { AddCartItemRequest } from '../model/add-cart-item-request';
+import { AddCartItemRequest } from '../../model/cart/add-cart-item-request';
 // @ts-ignore
-import { CartResponse } from '../model/cart-response';
+import { CartResponse } from '../../model/cart/cart-response';
 // @ts-ignore
-import { ProblemDetails } from '../model/problem-details';
+import { ProblemDetails } from '../../model/shared/problem-details';
 // @ts-ignore
-import { UpdateCartItemRequest } from '../model/update-cart-item-request';
+import { UpdateCartItemRequest } from '../../model/cart/update-cart-item-request';
 
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS }                     from '../../variables';
+import { Configuration }                                     from '../../configuration';
 
 
 export interface AddCartItemRequestParams {

@@ -7,14 +7,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { MoneyDto } from './money-dto';
+import { MoneyDto } from '../shared/money-dto';
 
 
-export interface OrderSummaryDto { 
+export interface MenuProductDto { 
     id: number;
-    restaurantId: number;
-    total: MoneyDto;
-    placedAt: string;
-    itemCount: number;
+    name: string;
+    description: string;
+    price: MoneyDto;
+    isAvailable: boolean;
 }
 

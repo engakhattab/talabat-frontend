@@ -7,7 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { MoneyDto } from './money-dto';
+import { MoneyDto } from '../shared/money-dto';
 import { OrderLineItemDto } from './order-line-item-dto';
 import { OrderDeliveryAddressDto } from './order-delivery-address-dto';
 

@@ -1,12 +1,15 @@
 {
-  "generatorName": "typescript-angular",
+  "generatorName": "talabat-typescript-angular",
   "inputSpec": "openapi/customer-api.json",
   "output": "projects/api-customer/src",
+  "templateDir": "openapi/templates/typescript-angular",
   "additionalProperties": {
     "npmName": "@talabat/api-customer",
     "serviceSuffix": "ApiService",
+    "serviceFileSuffix": "-api.service",
     "stringEnums": true,
     "providedInRoot": true,
+    "providedIn": "root",
     "useSingleRequestParameter": true,
     "withInterfaces": false,
     "supportsES6": true,

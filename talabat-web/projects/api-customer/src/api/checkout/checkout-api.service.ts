@@ -13,24 +13,24 @@ import { Inject, Injectable, Optional }                      from '@angular/core
 import { HttpClient, HttpHeaders, HttpParams,
          HttpResponse, HttpEvent, HttpParameterCodec, HttpContext 
         }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
+import { CustomHttpParameterCodec }                          from '../../encoder';
 import { Observable }                                        from 'rxjs';
 
 type Observe = 'body' | 'response' | 'events';
 type RequestValue = string | number | boolean | Date | Blob | ReadonlyArray<unknown> | Record<string, unknown>;
 
 // @ts-ignore
-import { CheckoutRequest } from '../model/checkout-request';
+import { CheckoutRequest } from '../../model/checkout/checkout-request';
 // @ts-ignore
-import { CheckoutSuccessResponse } from '../model/checkout-success-response';
+import { CheckoutSuccessResponse } from '../../model/checkout/checkout-success-response';
 // @ts-ignore
-import { CheckoutUnavailableResponse } from '../model/checkout-unavailable-response';
+import { CheckoutUnavailableResponse } from '../../model/checkout/checkout-unavailable-response';
 // @ts-ignore
-import { ProblemDetails } from '../model/problem-details';
+import { ProblemDetails } from '../../model/shared/problem-details';
 
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
+import { BASE_PATH, COLLECTION_FORMATS }                     from '../../variables';
+import { Configuration }                                     from '../../configuration';
 
 
 export interface CheckoutRequestParams {
