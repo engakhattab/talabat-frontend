@@ -33,7 +33,7 @@ describe('RestaurantListPage', () => {
     await vi.waitFor(() => expect(api.getRestaurants).toHaveBeenCalledOnce());
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Loading...');
+    expect(fixture.nativeElement.textContent).toContain('Loading restaurants');
 
     response.next(emptyResponse);
     response.complete();
@@ -58,6 +58,10 @@ describe('RestaurantListPage', () => {
     expect(fixture.nativeElement.querySelector('[role="alert"]')?.textContent).toContain(
       'Cannot reach the server',
     );
+    expect(fixture.nativeElement.querySelector('button')?.textContent).toContain('Try again');
+
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    await vi.waitFor(() => expect(api.getRestaurants).toHaveBeenCalledTimes(2));
   });
 
   it('shows the empty state when the API returns no restaurants', async () => {
@@ -68,7 +72,7 @@ describe('RestaurantListPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('No restaurants available.');
+    expect(fixture.nativeElement.textContent).toContain('No restaurants available');
   });
 
   it('renders restaurant data returned by the generated client', async () => {
@@ -91,6 +95,7 @@ describe('RestaurantListPage', () => {
     const listItem = fixture.nativeElement.querySelector('li') as HTMLLIElement | null;
     expect(listItem?.textContent).toContain(restaurant.name);
     expect(listItem?.textContent).toContain(restaurant.description);
+    expect(fixture.nativeElement.querySelector('[role="img"]')).toBeTruthy();
   });
 });
 

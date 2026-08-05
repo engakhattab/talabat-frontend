@@ -1,22 +1,14 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { formatDateTime } from './date-time-format';
+import { MoneyPipe } from './money.pipe';
 
-import { SharedUtil } from './shared-util';
-
-describe('SharedUtil', () => {
-  let component: SharedUtil;
-  let fixture: ComponentFixture<SharedUtil>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [SharedUtil],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(SharedUtil);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+describe('shared display utilities', () => {
+  it('formats a monetary value without inventing a missing currency', () => {
+    expect(new MoneyPipe().transform({ amount: 42.5 })).toBe('42.5');
+    expect(new MoneyPipe().transform({ amount: 42.5, currency: 'EGP' })).toContain('42.50');
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('uses a safe placeholder for invalid date-time values', () => {
+    expect(formatDateTime('not-a-date')).toBe('—');
+    expect(formatDateTime(null)).toBe('—');
   });
 });
