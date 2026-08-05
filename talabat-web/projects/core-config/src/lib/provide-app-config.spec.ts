@@ -1,7 +1,7 @@
 import { ApplicationInitStatus } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { APP_CONFIG, AppConfig } from './app-config';
+import { APP_CONFIG, APP_CONFIG_READY, AppConfig } from './app-config';
 import { provideAppConfig } from './provide-app-config';
 
 describe('provideAppConfig', () => {
@@ -26,6 +26,7 @@ describe('provideAppConfig', () => {
 
     const initStatus = TestBed.inject(ApplicationInitStatus);
     await initStatus.donePromise;
+    await TestBed.inject(APP_CONFIG_READY);
 
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock).toHaveBeenCalledWith('/assets/config.json');
