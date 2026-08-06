@@ -93,4 +93,32 @@ describe('problemDetailsInterceptor', () => {
       isNetworkError: true,
     } satisfies AppError);
   });
+
+  it.each([
+    ['CrossRestaurantCart', 409],
+    ['CartExpired', 409],
+    ['CartNotActive', 409],
+    ['CartItemNotFound', 404],
+    ['ProductUnavailable', 422],
+    ['RestaurantClosed', 422],
+    ['RestaurantInactive', 422],
+    ['InvalidQuantity', 400],
+  ] as const)('maps cart domain error code %s to AppError', async (errorCode, status) => {
+    const response = firstValueFrom(http.get('/test'));
+
+    httpTesting
+      .expectOne('/test')
+      .flush(
+        { title: `${errorCode} occurred`, detail: 'Cart operation failed', errorCode },
+        { status, statusText: 'Error' },
+      );
+
+    await expect(response).rejects.toEqual({
+      status,
+      code: AppErrorCode[errorCode],
+      title: `${errorCode} occurred`,
+      detail: 'Cart operation failed',
+      isNetworkError: false,
+    } satisfies AppError);
+  });
 });

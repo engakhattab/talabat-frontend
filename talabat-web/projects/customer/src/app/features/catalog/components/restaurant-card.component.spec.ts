@@ -47,8 +47,7 @@ describe('RestaurantCardComponent', () => {
 
     const anchor = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
     expect(anchor).toBeTruthy();
-    const href = anchor.getAttribute('href') ?? anchor.getAttribute('routerLink');
-    expect(href).toBe('/restaurants/1');
+    expect(anchor.getAttribute('href')).toBe('/restaurants/1');
   });
 
   it('emits select output with restaurant ID when clicked', () => {
@@ -60,8 +59,6 @@ describe('RestaurantCardComponent', () => {
     fixture.componentInstance.select.subscribe(selectSpy);
 
     const anchor = fixture.nativeElement.querySelector('a') as HTMLAnchorElement;
-    // Prevent default to avoid RouterLink async navigation conflicting with TestBed teardown
-    anchor.addEventListener('click', (e) => e.preventDefault(), { once: true });
     anchor.click();
 
     expect(selectSpy).toHaveBeenCalledWith(1);

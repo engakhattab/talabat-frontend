@@ -3,6 +3,14 @@ export const AppErrorCode = {
   InvalidCustomerProfile: 'InvalidCustomerProfile',
   ProfileAlreadyExists: 'ProfileAlreadyExists',
   RestaurantNotFound: 'RestaurantNotFound',
+  CrossRestaurantCart: 'CrossRestaurantCart',
+  CartExpired: 'CartExpired',
+  CartNotActive: 'CartNotActive',
+  CartItemNotFound: 'CartItemNotFound',
+  ProductUnavailable: 'ProductUnavailable',
+  RestaurantClosed: 'RestaurantClosed',
+  RestaurantInactive: 'RestaurantInactive',
+  InvalidQuantity: 'InvalidQuantity',
   Unknown: 'Unknown',
 } as const;
 export type AppErrorCode = (typeof AppErrorCode)[keyof typeof AppErrorCode];

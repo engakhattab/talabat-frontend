@@ -11,6 +11,7 @@ import { ProfileStore } from './core/profile/profile.store';
 import { HeaderComponent } from './layout/header.component';
 import { CartEntryBarComponent } from './layout/cart-entry-bar.component';
 import { RestaurantCardComponent } from './features/catalog/components/restaurant-card.component';
+import { CartStore } from './features/cart/cart.store';
 
 describe('Routing and Navigation Architecture', () => {
   let router: Router;
@@ -45,6 +46,24 @@ describe('Routing and Navigation Architecture', () => {
     signOut: vi.fn().mockResolvedValue(undefined),
   };
 
+  const mockCartStore = {
+    status: signal('loaded').asReadonly(),
+    cart: signal(null).asReadonly(),
+    items: signal([]).asReadonly(),
+    isEmpty: signal(true).asReadonly(),
+    total: signal(null).asReadonly(),
+    totalItemCount: signal(0).asReadonly(),
+    error: signal(null).asReadonly(),
+    notice: signal(null).asReadonly(),
+    isMutating: signal(false).asReadonly(),
+    mutatingProductId: signal(null).asReadonly(),
+    loadCart: vi.fn().mockResolvedValue(undefined),
+    reload: vi.fn().mockResolvedValue(undefined),
+    updateQuantity: vi.fn().mockResolvedValue(undefined),
+    removeItem: vi.fn().mockResolvedValue(undefined),
+    clearCart: vi.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     TestBed.configureTestingModule({
       providers: [
@@ -52,6 +71,7 @@ describe('Routing and Navigation Architecture', () => {
         { provide: CatalogApiService, useValue: mockCatalogApi },
         { provide: ProfileStore, useValue: mockProfileStore },
         { provide: AuthStore, useValue: mockAuthStore },
+        { provide: CartStore, useValue: mockCartStore },
       ],
     });
 

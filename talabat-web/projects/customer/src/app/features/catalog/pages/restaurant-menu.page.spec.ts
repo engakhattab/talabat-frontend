@@ -7,11 +7,21 @@ import { AppError, AppErrorCode } from '@talabat/core-http';
 import { AuthStore } from '@talabat/core-auth';
 
 import { RestaurantMenuPage } from './restaurant-menu.page';
+import { CartStore } from '../../cart/cart.store';
+import { CartEntryCoordinator } from '../../../core/cart-entry/cart-entry-coordinator.service';
 
 describe('RestaurantMenuPage', () => {
   let component: RestaurantMenuPage;
   let fixture: ComponentFixture<RestaurantMenuPage>;
   let api: { getRestaurantMenu: ReturnType<typeof vi.fn> };
+  let coordinator: { handle: ReturnType<typeof vi.fn> };
+  let cartStore: {
+    isMutating: import('@angular/core').Signal<boolean>;
+    mutatingProductId: import('@angular/core').Signal<number | null>;
+    totalItemCount: import('@angular/core').Signal<number>;
+  };
+  let isAuthenticatedSignal: ReturnType<typeof signal<boolean>>;
+  let signInSpy: ReturnType<typeof vi.fn>;
 
   const menuResponse: MenuResponse = {
     restaurantId: 1,
@@ -36,6 +46,14 @@ describe('RestaurantMenuPage', () => {
 
   beforeEach(() => {
     api = { getRestaurantMenu: vi.fn() };
+    coordinator = { handle: vi.fn().mockResolvedValue('added') };
+    cartStore = {
+      isMutating: signal(false).asReadonly(),
+      mutatingProductId: signal(null).asReadonly(),
+      totalItemCount: signal(0).asReadonly(),
+    };
+    isAuthenticatedSignal = signal(true);
+    signInSpy = vi.fn().mockResolvedValue(undefined);
   });
 
   function createPage(restaurantId: string) {
@@ -44,14 +62,16 @@ describe('RestaurantMenuPage', () => {
       providers: [
         provideRouter([]),
         { provide: CatalogApiService, useValue: api },
+        { provide: CartEntryCoordinator, useValue: coordinator },
+        { provide: CartStore, useValue: cartStore },
         {
           provide: AuthStore,
           useValue: {
             user: signal(null).asReadonly(),
-            isAuthenticated: signal(false).asReadonly(),
+            isAuthenticated: isAuthenticatedSignal.asReadonly(),
             busy: signal(false).asReadonly(),
             initialized: signal(true).asReadonly(),
-            signIn: vi.fn().mockResolvedValue(undefined),
+            signIn: signInSpy,
             signOut: vi.fn().mockResolvedValue(undefined),
           },
         },
@@ -124,5 +144,104 @@ describe('RestaurantMenuPage', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Try again');
+  });
+
+  it('delegates an add-to-cart click to the cart coordinator', async () => {
+    api.getRestaurantMenu.mockReturnValue(of(menuResponse));
+
+    createPage('1');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const addButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((el: Element) => el.textContent?.includes('Add to cart')) as HTMLButtonElement;
+    addButton.click();
+
+    expect(coordinator.handle).toHaveBeenCalledWith({ restaurantId: 1, productId: 1 });
+  });
+
+  it('shows success feedback after a confirmed add', async () => {
+    api.getRestaurantMenu.mockReturnValue(of(menuResponse));
+    coordinator.handle.mockResolvedValue('added');
+
+    createPage('1');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const addButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((el: Element) => el.textContent?.includes('Add to cart')) as HTMLButtonElement;
+    addButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Added to your cart');
+  });
+
+  it('shows success feedback after a cross-restaurant clear-and-add resolution', async () => {
+    api.getRestaurantMenu.mockReturnValue(of(menuResponse));
+    coordinator.handle.mockResolvedValue('conflict-resolved');
+
+    createPage('1');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const addButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((el: Element) => el.textContent?.includes('Add to cart')) as HTMLButtonElement;
+    addButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Added to your cart');
+  });
+
+  it('does not show success feedback when the addition fails', async () => {
+    api.getRestaurantMenu.mockReturnValue(of(menuResponse));
+    coordinator.handle.mockResolvedValue('error');
+
+    createPage('1');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const addButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((el: Element) => el.textContent?.includes('Add to cart')) as HTMLButtonElement;
+    addButton.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Added to your cart');
+  });
+
+  it('starts authentication when an anonymous customer adds to cart', async () => {
+    api.getRestaurantMenu.mockReturnValue(of(menuResponse));
+    isAuthenticatedSignal.set(false);
+    coordinator.handle.mockResolvedValue('authentication-started');
+
+    createPage('1');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const addButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((el: Element) => el.textContent?.includes('Add to cart')) as HTMLButtonElement;
+    addButton.click();
+    await fixture.whenStable();
+
+    expect(signInSpy).toHaveBeenCalled();
+  });
+
+  it('disables the add control for unavailable products', async () => {
+    api.getRestaurantMenu.mockReturnValue(of(menuResponse));
+
+    createPage('1');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
+    const unavailable = Array.from(buttons).find((b) => b.textContent?.includes('Unavailable'));
+    expect(unavailable?.disabled).toBe(true);
   });
 });

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '@talabat/core-auth';
 import { ButtonComponent } from '@talabat/shared-ui';
+import { CartStore } from '../features/cart/cart.store';
 import { ProfileStore } from '../core/profile/profile.store';
 
 @Component({
@@ -13,7 +14,7 @@ import { ProfileStore } from '../core/profile/profile.store';
         <a class="font-display text-lg font-bold text-food-ink no-underline" routerLink="/restaurants">Talabat</a>
         <nav class="flex items-center gap-3 sm:gap-4" aria-label="Main navigation" aria-live="polite">
           <a
-            class="text-sm font-medium text-food-ink no-underline hover:text-food-secondary"
+            class="inline-flex min-h-[42px] items-center text-sm font-medium text-food-ink no-underline hover:text-food-secondary"
             routerLink="/restaurants"
             routerLinkActive="text-food-secondary font-semibold"
           >
@@ -21,14 +22,30 @@ import { ProfileStore } from '../core/profile/profile.store';
           </a>
           @if (auth.initialized() && auth.isAuthenticated()) {
             <a
-              class="text-sm font-medium text-food-ink no-underline hover:text-food-secondary"
+              class="relative inline-flex min-h-[42px] items-center text-sm font-medium text-food-ink no-underline hover:text-food-secondary"
+              routerLink="/cart"
+              routerLinkActive="text-food-secondary font-semibold"
+              aria-label="View cart"
+            >
+              Cart
+              @if (cart.totalItemCount() > 0) {
+                <span
+                  class="ms-1 inline-flex min-h-7 min-w-7 items-center justify-center rounded-full bg-food-primary px-1.5 text-xs font-semibold text-white"
+                  aria-hidden="true"
+                >
+                  {{ cart.totalItemCount() }}
+                </span>
+              }
+            </a>
+            <a
+              class="inline-flex min-h-[42px] items-center text-sm font-medium text-food-ink no-underline hover:text-food-secondary"
               routerLink="/profile"
               routerLinkActive="text-food-secondary font-semibold"
             >
               Profile
             </a>
             <a
-              class="text-sm font-medium text-food-ink no-underline hover:text-food-secondary"
+              class="inline-flex min-h-[42px] items-center text-sm font-medium text-food-ink no-underline hover:text-food-secondary"
               routerLink="/orders"
               routerLinkActive="text-food-secondary font-semibold"
             >
@@ -51,6 +68,7 @@ import { ProfileStore } from '../core/profile/profile.store';
 })
 export class HeaderComponent {
   protected readonly auth = inject(AuthStore);
+  protected readonly cart = inject(CartStore);
   private readonly profileStore = inject(ProfileStore);
   private readonly router = inject(Router);
 

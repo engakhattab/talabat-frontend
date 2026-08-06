@@ -3,14 +3,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { CatalogApiService, MenuResponse } from '@talabat/api-customer';
 import { AppError, AppErrorCode } from '@talabat/core-http';
-import { DialogService, EmptyStateComponent, ErrorStateComponent, SpinnerComponent } from '@talabat/shared-ui';
+import { EmptyStateComponent, ErrorStateComponent, SpinnerComponent } from '@talabat/shared-ui';
 import { AuthStore } from '@talabat/core-auth';
 import { Subject, switchMap, of, catchError, map } from 'rxjs';
 
 import { MenuHeaderComponent } from '../components/menu-header.component';
 import { MenuProductCardComponent, CartEntryRequest } from '../components/menu-product-card.component';
 import { CartEntryCoordinator } from '../../../core/cart-entry/cart-entry-coordinator.service';
-import { CartDeferredDialogComponent } from '../../../layout/cart-entry-bar.component';
+import { CartStore } from '../../cart/cart.store';
 
 type MenuViewState =
   | 'invalid-parameter'
@@ -62,6 +62,8 @@ type MenuViewState =
               <tal-menu-product-card
                 [product]="product"
                 [restaurantId]="m.restaurantId"
+                [busy]="cartStore.isMutating() && cartStore.mutatingProductId() === product.id"
+                [justAdded]="recentlyAddedProductId() === product.id"
                 (cartEntry)="onCartEntry($event)"
               />
             </li>
@@ -75,8 +77,8 @@ export class RestaurantMenuPage implements OnInit {
   private readonly api = inject(CatalogApiService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly cartEntryCoordinator = inject(CartEntryCoordinator);
+  protected readonly cartStore = inject(CartStore);
   private readonly auth = inject(AuthStore);
-  private readonly dialog = inject(DialogService);
   private readonly router = inject(Router);
 
   readonly restaurantId = input.required<string>();
@@ -85,6 +87,10 @@ export class RestaurantMenuPage implements OnInit {
   private readonly menuSignal = signal<MenuResponse | null>(null);
   private readonly errorSignal = signal<AppError | null>(null);
   private readonly reload$ = new Subject<void>();
+  private readonly recentlyAddedProductIdState = signal<number | null>(null);
+  private recentlyAddedTimer: number | undefined;
+
+  protected readonly recentlyAddedProductId = this.recentlyAddedProductIdState.asReadonly();
 
   private readonly parsedId = computed<number | undefined>(() => parseRestaurantId(this.restaurantId()));
 
@@ -112,16 +118,28 @@ export class RestaurantMenuPage implements OnInit {
   }
 
   protected onCartEntry(request: CartEntryRequest): void {
-    const outcome = this.cartEntryCoordinator.handle(request, this.auth.isAuthenticated());
+    void this.runCartEntry(request);
+  }
+
+  private async runCartEntry(request: CartEntryRequest): Promise<void> {
+    const outcome = await this.cartEntryCoordinator.handle(request);
 
     if (outcome === 'authentication-started') {
       void this.auth.signIn(this.router.url).catch(() => undefined);
       return;
     }
 
-    this.dialog.openModal(CartDeferredDialogComponent, {
-      ariaLabel: 'Ordering preview',
-    });
+    if (outcome === 'added' || outcome === 'conflict-resolved') {
+      this.markRecentlyAdded(request.productId);
+    }
+  }
+
+  private markRecentlyAdded(productId: number): void {
+    this.recentlyAddedProductIdState.set(productId);
+    window.clearTimeout(this.recentlyAddedTimer);
+    this.recentlyAddedTimer = window.setTimeout(() => {
+      this.recentlyAddedProductIdState.set(null);
+    }, 2000);
   }
 
   ngOnInit(): void {

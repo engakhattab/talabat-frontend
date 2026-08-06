@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, booleanAttribute, input, output } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MenuProductDto } from '@talabat/api-customer';
 
@@ -43,15 +43,22 @@ export interface CartEntryRequest {
         @if (product().isAvailable) {
           <button
             type="button"
-            class="w-full rounded-food bg-food-primary px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            class="w-full min-h-[42px] rounded-food bg-food-primary px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            [attr.aria-busy]="busy() ? 'true' : null"
+            [disabled]="busy()"
             (click)="onAddToCart()"
           >
-            Add to order
+            {{ busy() ? 'Adding to cart' : 'Add to cart' }}
           </button>
+          @if (justAdded()) {
+            <p class="mt-1 text-center text-xs font-medium text-food-success" role="status">
+              Added to your cart
+            </p>
+          }
         } @else {
           <button
             type="button"
-            class="w-full rounded-food bg-food-subtle px-3 py-2 text-sm font-medium text-food-muted"
+            class="w-full min-h-[42px] rounded-food bg-food-subtle px-3 py-2 text-sm font-medium text-food-muted"
             disabled
             aria-disabled="true"
           >
@@ -65,6 +72,8 @@ export interface CartEntryRequest {
 export class MenuProductCardComponent {
   readonly product = input.required<MenuProductDto>();
   readonly restaurantId = input.required<number>();
+  readonly busy = input(false, { transform: booleanAttribute });
+  readonly justAdded = input(false, { transform: booleanAttribute });
 
   readonly cartEntry = output<CartEntryRequest>();
 
