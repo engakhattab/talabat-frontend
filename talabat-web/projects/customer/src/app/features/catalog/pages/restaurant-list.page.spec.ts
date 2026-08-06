@@ -7,6 +7,8 @@ import {
 import { AppError, AppErrorCode } from '@talabat/core-http';
 import { of, Subject, throwError } from 'rxjs';
 
+import { provideRouter } from '@angular/router';
+
 import { RestaurantListPage } from './restaurant-list.page';
 
 describe('RestaurantListPage', () => {
@@ -19,7 +21,7 @@ describe('RestaurantListPage', () => {
 
     await TestBed.configureTestingModule({
       imports: [RestaurantListPage],
-      providers: [{ provide: CatalogApiService, useValue: api }],
+      providers: [provideRouter([]), { provide: CatalogApiService, useValue: api }],
     }).compileComponents();
   });
 

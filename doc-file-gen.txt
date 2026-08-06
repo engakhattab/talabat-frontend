@@ -1,0 +1,718 @@
+You are a senior Angular architect, code reviewer, and technical educator.
+
+Your task is to inspect and document every uncommitted change introduced during Phase 7:
+
+“Customer Shell, Profile Gate, Onboarding, and Restaurant Menu”
+
+The Phase 7 implementation has already finished, but I intentionally did NOT run:
+
+- git add
+- git commit
+
+This is deliberate. You must use the current Git working tree to identify exactly what Phase 7 added, modified, moved, renamed, or deleted.
+
+Your goal is to create a complete beginner-friendly learning guide explaining the entire Phase 7 implementation in detail.
+
+==================================================
+CRITICAL SAFETY RULES
+==================================================
+
+1. This is a READ-ONLY code-analysis and documentation task.
+
+2. Do not modify any application source file.
+
+3. Do not fix, refactor, format, rename, move, or delete any implementation file.
+
+4. Do not run:
+   - git add
+   - git commit
+   - git reset
+   - git restore
+   - git checkout
+   - git clean
+   - git stash
+   - any destructive Git command
+
+5. Do not mark tasks as complete or modify Spec Kit artifacts.
+
+6. The only file you are allowed to create or update is:
+
+   docs/phase-7-customer-shell-onboarding-menu-learning-guide.md
+
+7. Do not assume that all Phase 7 changes are tracked. You must inspect:
+   - modified tracked files
+   - staged files, if any
+   - unstaged files
+   - untracked files
+   - deleted files
+   - renamed or moved files
+
+8. The current HEAD commit is the baseline. All differences between HEAD and the current working tree must be investigated.
+
+9. Do not explain code that was already present before Phase 7 as if Phase 7 introduced it.
+
+10. Clearly distinguish between:
+    - code added in Phase 7
+    - code modified in Phase 7
+    - code deleted in Phase 7
+    - unchanged existing code that the new code depends on
+
+==================================================
+MANDATORY SOURCES
+==================================================
+
+Before analysing the implementation, read these project artifacts:
+
+- .specify/memory/constitution.md
+- specs/001-customer-shell-onboarding-menu/spec.md
+- specs/001-customer-shell-onboarding-menu/plan.md
+- specs/001-customer-shell-onboarding-menu/tasks.md
+- specs/001-customer-shell-onboarding-menu/checklists/phase-7-requirements.md
+- docs/talabat-angular-roadmap-phases-5-to-completion.md
+- phase-6-secure-oidc-authentication-implementation-report.md
+- AGENTS.md, if present
+- relevant package.json, angular.json, and tsconfig files
+
+Use these artifacts to understand the intention of every Phase 7 change.
+
+However, the actual Git diff and current file contents are the source of truth for what was really implemented.
+
+==================================================
+STEP 1 — CAPTURE THE EXACT WORKING TREE
+==================================================
+
+Start by running safe read-only Git inspection commands, including:
+
+git status --short
+git status
+git branch --show-current
+git rev-parse HEAD
+git log -5 --oneline
+git diff --stat HEAD
+git diff --name-status HEAD
+git diff --summary HEAD
+git diff --check HEAD
+git diff HEAD
+git diff --cached
+git ls-files --others --exclude-standard
+
+If useful, also use safe commands such as:
+
+git diff --numstat HEAD
+git diff --find-renames HEAD
+git show HEAD:<path>
+
+Do not rely only on `git diff`, because untracked files will not appear there.
+
+For every untracked text source file, read its full contents and treat every line as newly added.
+
+For binary files such as images, fonts, or other assets:
+- identify the file
+- report its type and approximate size
+- explain where it is referenced
+- explain why it exists
+- do not pretend to perform a source-code line analysis on binary content
+
+==================================================
+STEP 2 — BUILD A COMPLETE CHANGE INVENTORY
+==================================================
+
+Create an exact inventory grouped into:
+
+1. New files
+2. Modified files
+3. Deleted files
+4. Renamed or moved files
+5. Generated files, if any
+6. Documentation or specification files changed
+7. Tests added or modified
+8. Configuration files changed
+9. Styling and asset files changed
+
+For every file, include:
+
+- full relative path
+- Git status
+- owning architectural area
+- whether it is application code, library code, test code, route code, styling, configuration, documentation, or asset
+- which Phase 7 requirement or task caused the change
+- whether it depends on another Phase 7 file
+- whether another file depends on it
+
+Do not omit small files such as:
+
+- route files
+- public-api exports
+- index files
+- test setup files
+- CSS files
+- configuration changes
+- type declarations
+- tokens
+- helper utilities
+- test fixtures
+
+==================================================
+STEP 3 — EXPLAIN EACH FILE IN DEPTH
+==================================================
+
+Create a dedicated section for every changed or newly added file.
+
+For each file, explain:
+
+### A. File identity
+
+- Full path
+- Git change type
+- Main responsibility
+- Why this file belongs in this folder
+- Why this responsibility was not placed in another library or feature
+- Relevant architectural dependency direction
+
+### B. Problem solved
+
+Explain:
+
+- What problem existed before this file or change
+- What user journey it enables
+- Which Phase 7 requirement it satisfies
+- What would break or remain missing if this file did not exist
+
+### C. Relationships
+
+Explain:
+
+- What imports this file
+- What this file imports
+- What services, signals, guards, routes, components, or generated APIs it interacts with
+- The runtime flow into and out of this file
+
+### D. Complete code walkthrough
+
+Explain all Phase 7 code added to the file.
+
+For tracked modified files:
+- compare the current file against HEAD
+- explain only the added, removed, and changed lines
+- include enough unchanged surrounding context to make the change understandable
+- do not describe old unchanged lines as Phase 7 additions
+
+For new untracked files:
+- every source line is considered added
+- explain the entire file
+
+==================================================
+LINE-BY-LINE EXPLANATION REQUIREMENT
+==================================================
+
+For every added or modified source-code line, include:
+
+- current file line number
+- exact code line or a very small contiguous code block
+- what the syntax means
+- why it was added
+- what runtime or compile-time effect it has
+- what other code depends on it
+- what would happen if it were removed or written incorrectly
+
+Use this format where practical:
+
+| Line(s) | Code | Explanation | Why Phase 7 needs it |
+|---|---|---|---|
+
+Do not skip:
+
+- imports
+- decorators
+- providers
+- dependency injection
+- signal declarations
+- computed values
+- effects
+- resource declarations
+- guard return values
+- route definitions
+- templates
+- `@if`, `@for`, and bindings
+- accessibility attributes
+- CSS classes
+- Tailwind utilities
+- error handling
+- loading states
+- retry actions
+- tests
+- mocks
+- spies
+- expectations
+- exports
+- type annotations
+
+You may group consecutive purely mechanical lines only when they perform one indivisible operation, but you must still show the full grouped code and explain every meaningful part.
+
+Do not use vague explanations such as:
+
+- “This import is needed.”
+- “This function handles the logic.”
+- “This component displays the UI.”
+
+Instead explain exactly what is imported, who injects or calls it, what state it changes, and why its placement is correct.
+
+==================================================
+DELETED AND REPLACED CODE
+==================================================
+
+For every deleted or replaced block:
+
+- show the previous code from HEAD
+- show the new code
+- explain why the previous approach was removed
+- explain what behaviour changed
+- state whether this is a refactor, feature addition, bug fix, architecture correction, or test update
+- explain any migration consequences
+
+Do not treat deletion as unimportant.
+
+==================================================
+PHASE 7 ARCHITECTURE EXPLANATION
+==================================================
+
+After the file-by-file explanation, include a detailed architecture section covering the actual implementation of:
+
+1. Customer application shell
+2. Header and navigation
+3. Public restaurant routes
+4. Restaurant menu route
+5. Route parameter handling
+6. Authentication guard
+7. Profile guard
+8. Guard execution order
+9. ProfileStore ownership
+10. Profile loading and caching
+11. In-flight request deduplication
+12. Session reset behaviour
+13. Missing-profile handling
+14. Difference between:
+    - profile 404
+    - 401
+    - 403
+    - network failure
+    - backend 500 error
+15. Onboarding route
+16. Signal Forms implementation
+17. Client validation
+18. Server validation
+19. Duplicate-submit prevention
+20. Safe return URL behaviour
+21. Menu loading/error/not-found/empty/populated states
+22. Product availability
+23. Broken image fallback
+24. Local cart-entry intent
+25. Why real server cart mutations remain Phase 8
+26. Persistent cart entry control
+27. Mobile safe-area behaviour
+28. Keyboard accessibility
+29. Focus visibility
+30. Responsive behaviour at 320px, 768px, and 1280px
+
+Explain the actual code that exists, not merely what the specification requested.
+
+If something in the specification was not implemented, explicitly report it.
+
+==================================================
+RUNTIME FLOW EXPLANATIONS
+==================================================
+
+Provide step-by-step runtime walkthroughs for these scenarios:
+
+### Flow 1 — Anonymous user opens restaurant list
+
+Explain:
+- route matching
+- lazy loading
+- shell behaviour
+- API request
+- auth header behaviour
+- rendered states
+
+### Flow 2 — Anonymous user opens a protected route
+
+Explain:
+- authGuard execution
+- return URL preservation
+- OIDC redirect
+- callback
+- resumed navigation
+
+### Flow 3 — Authenticated user has no profile
+
+Explain:
+- authGuard
+- profileGuard
+- ProfileStore
+- GET /api/me/profile
+- AppError mapping
+- 404 ProfileNotCreated detection
+- UrlTree creation
+- onboarding navigation
+- loop prevention
+
+### Flow 4 — Authenticated user already has a profile
+
+Explain:
+- profile cache
+- once-per-session behaviour
+- allowed navigation
+- duplicate request prevention
+
+### Flow 5 — User submits onboarding successfully
+
+Explain:
+- form model
+- validation
+- busy state
+- generated API call
+- profile cache update
+- return URL validation
+- destination navigation
+
+### Flow 6 — Onboarding server validation fails
+
+Explain:
+- error propagation
+- form value preservation
+- field/general error rendering
+- button re-enabling
+- retry behaviour
+
+### Flow 7 — User changes directly from one restaurant menu route to another
+
+Explain:
+- route parameter reading
+- resource recreation or cancellation
+- stale response protection
+- rendering transitions
+
+### Flow 8 — Menu endpoint returns each supported state
+
+Explain:
+- loading
+- network error
+- retry
+- 404
+- empty menu
+- populated menu
+- unavailable product
+- broken image
+
+### Flow 9 — User selects a product in Phase 7
+
+Explain:
+- local selection intent
+- badge or local state update
+- dialog/sheet interaction
+- why no CartApiService mutation occurs
+- how Phase 8 will replace or extend this boundary
+
+### Flow 10 — Logout or session change
+
+Explain:
+- authentication state change
+- ProfileStore reset
+- local selection reset, if implemented
+- route consequences
+
+==================================================
+TEST EXPLANATION
+==================================================
+
+For every added or modified test file:
+
+- explain what production behaviour it protects
+- explain test setup
+- explain fakes, mocks, stubs, and spies
+- explain each test case
+- explain Arrange, Act, and Assert
+- explain why the expectation is meaningful
+- identify any missing important test coverage
+- identify whether the test is unit, component, integration, or route-level
+- explain whether it uses the generated API service contract correctly
+
+Create a test coverage matrix:
+
+| Requirement | Production file | Test file | Test case | Covered? |
+|---|---|---|---|---|
+
+Do not claim coverage merely because a test file exists.
+
+==================================================
+REQUIREMENT TRACEABILITY
+==================================================
+
+Create a traceability table for:
+
+- FR-001 through FR-019
+- SC-001 through SC-005
+- T001 through the final Phase 7 task
+
+Use this structure:
+
+| Requirement or task | Implementing file(s) | Relevant symbol(s) | Test evidence | Status |
+|---|---|---|---|---|
+
+Allowed statuses:
+
+- Implemented and tested
+- Implemented but not tested
+- Partially implemented
+- Planned but not implemented
+- Not applicable
+- Unable to verify
+
+Do not automatically trust completed checkboxes in tasks.md. Verify implementation from the code and tests.
+
+==================================================
+ANGULAR CONCEPTS — BEGINNER EXPLANATION
+==================================================
+
+Explain every Angular concept introduced or materially used by Phase 7 as if teaching a beginner, including where applicable:
+
+- standalone components
+- lazy-loaded routes
+- `loadChildren`
+- `loadComponent`
+- functional route guards
+- `CanActivateFn`
+- `UrlTree`
+- `inject()`
+- signals
+- readonly signals
+- writable private signals
+- `computed()`
+- resource/httpResource
+- route parameter signals
+- Signal Forms
+- form model
+- validation schema
+- `@if`
+- `@for`
+- `track`
+- input signals
+- output signals
+- dependency injection
+- root-provided services
+- CDK dialog or overlay
+- generated API services
+- `AppError`
+- accessibility attributes
+- safe-area CSS
+- zoneless change detection
+
+For each concept, reference the actual Phase 7 file and symbol that demonstrates it.
+
+==================================================
+SECURITY REVIEW
+==================================================
+
+Verify and explain whether the changes preserve these Phase 6 security rules:
+
+- no token stored by application code in localStorage
+- no token stored by application code in sessionStorage
+- no generated client edits
+- customer token only attaches to configured customer API URLs
+- public catalog remains public
+- onboarding requires authentication
+- profile guard does not replace backend authorization
+- return URLs are internal and validated
+- guards return UrlTree instead of imperative navigation
+- raw protocol errors or tokens are not displayed
+- no open redirect was introduced
+
+Report any violation clearly.
+
+==================================================
+DEPENDENCY AND BOUNDARY REVIEW
+==================================================
+
+Verify and explain:
+
+- core-auth does not import customer application code
+- core-auth does not import api-customer, unless the approved artifacts explicitly changed this rule
+- ProfileStore is customer-app-owned
+- shared-ui remains domain-neutral
+- features do not import other feature internals
+- generated api-customer code was not manually modified
+- no feature injects HttpClient directly
+- no Phase 8 CartApiService mutation was introduced
+- no client-authoritative prices or totals were introduced
+
+Include a dependency diagram using Mermaid.
+
+==================================================
+COMMAND AND VERIFICATION RESULTS
+==================================================
+
+Run only safe verification commands documented by the Phase 7 tasks and project configuration.
+
+At minimum, inspect package scripts first, then run the relevant commands such as:
+
+- affected Vitest test commands
+- customer tests
+- core-auth tests, if affected
+- shared-ui tests, if affected
+- production customer build
+- git diff --check
+
+Do not claim a command passed unless you actually ran it and captured the result.
+
+For each command include:
+
+- exact command
+- result: PASS / FAIL / NOT RUN
+- duration if available
+- important output
+- failure explanation
+- whether the failure appears caused by Phase 7
+
+Do not start backend or browser-based live verification unless the required hosts are already available and the Phase 7 instructions explicitly permit it.
+
+Separate:
+
+- automatically verified behaviour
+- manually verified behaviour
+- manual verification still required
+
+==================================================
+QUALITY AND RISK REVIEW
+==================================================
+
+Identify:
+
+- possible bugs
+- redirect-loop risks
+- stale resource risks
+- duplicate request risks
+- race conditions
+- missing resets after logout
+- unsafe casts
+- non-null assertions
+- manual subscriptions in components
+- direct HttpClient usage
+- duplicated domain models
+- hardcoded URLs
+- inaccessible controls
+- missing labels
+- missing focus handling
+- mobile overflow
+- cart boundary leaks into Phase 8
+- insufficient tests
+- configuration mistakes
+- dead code
+- unused imports
+- TODO or FIXME comments
+
+Classify each finding:
+
+- Critical
+- High
+- Medium
+- Low
+- Informational
+
+Do not modify the code to fix findings. Document them only.
+
+==================================================
+OUTPUT DOCUMENT STRUCTURE
+==================================================
+
+Create:
+
+docs/phase-7-customer-shell-onboarding-menu-learning-guide.md
+
+Use this exact high-level structure:
+
+# Phase 7 — Customer Shell, Profile Gate, Onboarding, and Restaurant Menu
+
+## 1. Purpose of Phase 7
+## 2. Starting Point Before Phase 7
+## 3. Git Baseline and Analysis Method
+## 4. Complete Change Summary
+## 5. New Files
+## 6. Modified Files
+## 7. Deleted, Renamed, or Moved Files
+## 8. File-by-File Detailed Walkthrough
+## 9. Line-by-Line Code Explanation
+## 10. Application Architecture After Phase 7
+## 11. Routing and Guard Flow
+## 12. ProfileStore and Profile Gate
+## 13. Onboarding and Signal Forms
+## 14. Customer Shell and Navigation
+## 15. Restaurant Menu Implementation
+## 16. Local Cart Entry Boundary
+## 17. Error and Async View States
+## 18. Accessibility and Responsive Design
+## 19. Runtime User Flows
+## 20. Tests and What Each Test Proves
+## 21. Requirement and Task Traceability
+## 22. Security Boundary Review
+## 23. Dependency Boundary Review
+## 24. Verification Commands and Results
+## 25. Problems, Risks, and Missing Coverage
+## 26. Manual Testing Guide
+## 27. Concepts a Beginner Must Learn
+## 28. Phase 7 Final Result
+## 29. What Phase 8 Will Add
+## 30. Appendix A — Full Changed-File Inventory
+## 31. Appendix B — Git Diff Statistics
+## 32. Appendix C — Symbols Added or Changed
+## 33. Appendix D — Unverified Assumptions
+
+==================================================
+WRITING STYLE
+==================================================
+
+Write the report in clear English.
+
+Assume the reader is a complete Angular beginner, but preserve technically accurate terminology.
+
+For every technical term:
+
+1. state its simple meaning
+2. explain why it is used here
+3. point to the actual file and symbol
+4. explain how it interacts with the rest of the application
+
+Do not write a shallow summary.
+
+Do not omit code merely because it appears repetitive.
+
+Do not claim that the implementation follows the specification unless verified from actual code.
+
+Do not hide failed tests, incomplete requirements, or architecture deviations.
+
+==================================================
+FINAL CONSOLE REPORT
+==================================================
+
+After writing the Markdown file, print a concise console summary containing:
+
+- report path
+- number of new files
+- number of modified files
+- number of deleted files
+- number of renamed files
+- number of untracked files
+- total added lines
+- total deleted lines
+- tests run
+- tests passed
+- tests failed
+- build result
+- number of requirements fully implemented
+- number partially implemented
+- number not verified
+- number of review findings by severity
+- confirmation that no source code was modified
+- confirmation that git add and git commit were not run
+
+Stop after creating and reporting the documentation file.
+Do not start Phase 8.

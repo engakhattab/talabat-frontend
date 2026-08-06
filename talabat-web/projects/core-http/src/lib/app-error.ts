@@ -1,5 +1,8 @@
 export const AppErrorCode = {
   ProfileNotCreated: 'ProfileNotCreated',
+  InvalidCustomerProfile: 'InvalidCustomerProfile',
+  ProfileAlreadyExists: 'ProfileAlreadyExists',
+  RestaurantNotFound: 'RestaurantNotFound',
   Unknown: 'Unknown',
 } as const;
 export type AppErrorCode = (typeof AppErrorCode)[keyof typeof AppErrorCode];

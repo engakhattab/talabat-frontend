@@ -1,5 +1,12 @@
 import { Routes } from '@angular/router';
 
-import { RestaurantListPage } from './pages/restaurant-list.page';
-
-export const routes: Routes = [{ path: '', component: RestaurantListPage }];
+export const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./pages/restaurant-list.page').then((m) => m.RestaurantListPage),
+  },
+  {
+    path: ':restaurantId',
+    loadComponent: () => import('./pages/restaurant-menu.page').then((m) => m.RestaurantMenuPage),
+  },
+];

@@ -1,23 +1,18 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'restaurants' },
   {
     path: 'signin-callback',
     loadComponent: () =>
-      import('./features/auth/signin-callback.page').then((module) => module.SigninCallbackPage),
+      import('./features/auth/signin-callback.page').then((m) => m.SigninCallbackPage),
   },
   {
     path: 'signout-callback',
     loadComponent: () =>
-      import('./features/auth/signout-callback.page').then((module) => module.SignoutCallbackPage),
+      import('./features/auth/signout-callback.page').then((m) => m.SignoutCallbackPage),
   },
   {
-    path: 'auth-check',
-    loadChildren: () => import('./features/auth/routes').then((module) => module.routes),
-  },
-  {
-    path: 'restaurants',
-    loadChildren: () => import('./features/catalog/routes').then((module) => module.routes),
+    path: '',
+    loadChildren: () => import('./layout/routes').then((m) => m.routes),
   },
 ];

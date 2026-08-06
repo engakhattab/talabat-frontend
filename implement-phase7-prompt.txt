@@ -1,0 +1,109 @@
+Implement Phase 7 from the approved tasks in dependency order.
+
+Before changing code:
+
+Re-read the constitution, specification, clarifications, plan, checklist, tasks, roadmap, Phase 6 report, and current repository.
+Inspect and load the available Angular capabilities:
+angular-di
+angular-signals
+angular-routing
+angular-http
+angular-testing
+angular-component
+Inspect and use forms, accessibility, CDK, and Tailwind capabilities only if available.
+
+Execute tasks incrementally.
+
+For every task group:
+
+Inspect current code first.
+Implement the smallest coherent change.
+Add or update meaningful tests immediately.
+Run the smallest relevant test command.
+Resolve failures before continuing.
+Update task progress truthfully.
+Do not batch all code and test only at the end.
+
+Non-negotiable constraints:
+
+Implement Phase 7 only.
+Do not start Phase 8.
+Do not implement server-backed cart mutations, quantities, totals, cart page, checkout, orders, addresses, or profile editing.
+Never edit generated API files.
+Do not modify backend code unless a verified contract blocker is reported and implementation stops.
+Preserve Phase 6 OIDC, token scoping, callbacks, logout, and storage behavior.
+Keep public catalog and menu routes public.
+Apply authGuard before profileGuard.
+Keep onboarding authenticated but profile-guard-exempt.
+Use generated Customer and Catalog API services.
+Use Signal Forms.
+Use private writable and public readonly signals.
+Use one consistent resource adapter.
+Keep pages orchestration-focused and components presentational.
+Keep customer-domain profile state out of core-auth unless the approved plan explicitly and convincingly chose otherwise.
+Do not introduce fake cart state or deceptive add-to-cart success.
+Use FoodDash tokens and existing shared UI.
+Maintain accessibility and responsive requirements.
+Do not install unapproved dependencies.
+Do not create a Git commit.
+
+Required automated verification includes all configured applicable commands equivalent to:
+
+npm run test:openapi-tools
+npm run api:verify
+npx ng test core-config --watch=false
+npx ng test core-http --watch=false
+npx ng test core-auth --watch=false
+npx ng test shared-ui --watch=false
+npx ng test shared-util --watch=false
+npx ng test customer --watch=false
+npx ng build core-auth
+npx ng build customer --configuration=production
+
+Run commands individually and record actual results.
+
+Do not claim a command passed unless it completed successfully.
+
+Perform live manual verification where browser interaction is available:
+
+Anonymous restaurant list and menu.
+New account login → profile 404 → onboarding → profile creation → catalog/menu.
+Existing profile login → intended protected destination.
+Direct onboarding with an existing profile.
+Network/profile retry.
+Invalid restaurant identifier.
+Restaurant 404.
+Empty menu.
+Unavailable product.
+Broken image.
+Keyboard navigation.
+320px, 768px, and 1280px layouts.
+200% zoom.
+Reduced motion.
+Shell safe-area and cart-access behavior.
+Phase 6 token scoping and logout regression.
+
+Create a Phase 7 implementation report beside existing phase documentation.
+
+The report must include:
+
+Baseline branch and commit.
+Initial worktree status.
+Skills/capabilities used.
+Decisions implemented.
+File-by-file changes.
+Profile state and guard behavior.
+Onboarding behavior.
+Shell and cart boundary behavior.
+Menu behavior.
+Tests and exact command results.
+Manual verification results.
+Constitution and roadmap compliance.
+Deviations.
+Known risks.
+Whether all Phase 7 exit criteria passed.
+Whether Phase 8 can safely begin.
+Recommended commit message.
+Confirmation that no commit was created.
+
+Do not declare Phase 7 complete when live profile/onboarding/menu verification is still pending.

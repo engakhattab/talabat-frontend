@@ -1,23 +1,7 @@
-<header class="border-b border-food-border bg-white">
-  <div class="mx-auto flex min-h-12 w-full max-w-6xl items-center justify-between gap-3 px-3 sm:px-6 lg:px-9">
-    <a class="font-display text-lg font-bold text-food-ink no-underline" routerLink="/restaurants">Talabat</a>
-    <div class="flex items-center gap-2" aria-live="polite">
-      @if (auth.initialized() && auth.isAuthenticated()) {
-        <span class="hidden text-sm text-food-muted sm:inline">
-          {{ auth.user()?.displayName ?? 'Signed in' }}
-        </span>
-        <a class="text-sm font-semibold text-food-ink" routerLink="/auth-check">Auth check</a>
-        <tal-button variant="ghost" [busy]="auth.busy()" (pressed)="signOut()">Sign out</tal-button>
-      } @else {
-        <span class="hidden text-sm text-food-muted sm:inline">Browsing as guest</span>
-        <tal-button [busy]="auth.busy()" (pressed)="signIn()">Sign in</tal-button>
-      }
-    </div>
-  </div>
-</header>
 @if (auth.error(); as error) {
   <p class="m-0 bg-food-tint px-3 py-2 text-center text-sm text-food-error" role="alert">
     {{ error.message }}
   </p>
 }
 <router-outlet />
+
