@@ -12,7 +12,7 @@ import { CartEntryBarComponent } from './cart-entry-bar.component';
         Skip to main content
       </a>
       <tal-header />
-      <main id="main-content" class="mx-auto w-full max-w-6xl flex-1 px-3 py-6 pb-24 sm:px-6 sm:py-9 lg:px-9">
+      <main id="main-content" class="mx-auto w-full max-w-6xl flex-1 px-3 py-6 pb-16 sm:px-6 sm:py-9 lg:px-9">
         <router-outlet />
       </main>
       <tal-cart-entry-bar />

@@ -6,7 +6,7 @@ import { ButtonComponent } from '@talabat/shared-ui';
   selector: 'tal-cross-restaurant-dialog',
   imports: [ButtonComponent],
   template: `
-    <div class="p-6">
+    <div class="tal-dialog-card">
       <h2 id="cross-restaurant-dialog-title" class="font-display text-xl font-semibold text-food-ink">
         Clear Cart &amp; Add New Item?
       </h2>

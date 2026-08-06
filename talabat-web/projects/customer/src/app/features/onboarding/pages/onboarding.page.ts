@@ -11,9 +11,11 @@ import { OnboardingFormComponent } from '../components/onboarding-form.component
   selector: 'tal-onboarding-page',
   imports: [OnboardingFormComponent, SpinnerComponent],
   template: `
-    <main class="mx-auto w-full max-w-lg px-3 py-8 sm:px-6">
-      <h1 class="font-display text-2xl font-bold text-food-ink">Create your profile</h1>
-      <p class="mt-2 text-sm text-food-muted">
+    <div class="mx-auto w-full max-w-lg">
+      <h1 class="font-display text-[1.75rem] leading-[2.125rem] font-bold text-food-ink">
+        Create your profile
+      </h1>
+      <p class="mt-2 text-sm leading-6 text-food-muted">
         Tell us a little about yourself to get started ordering.
       </p>
 
@@ -28,7 +30,7 @@ import { OnboardingFormComponent } from '../components/onboarding-form.component
           />
         </div>
       }
-    </main>
+    </div>
   `,
 })
 export class OnboardingPage implements OnInit {

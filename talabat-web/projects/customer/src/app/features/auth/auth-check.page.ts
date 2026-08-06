@@ -8,8 +8,10 @@ import { firstValueFrom } from 'rxjs';
   selector: 'tal-auth-check-page',
   imports: [ErrorStateComponent, SpinnerComponent],
   template: `
-    <main class="mx-auto w-full max-w-2xl px-3 py-8 sm:px-6">
-      <h1 class="font-display text-2xl font-bold text-food-ink">Authentication check</h1>
+    <div class="mx-auto w-full max-w-2xl">
+      <h1 class="font-display text-[1.75rem] leading-[2.125rem] font-bold text-food-ink">
+        Authentication check
+      </h1>
       @if (verification.isLoading()) {
         <div class="mt-6"><tal-spinner label="Verifying protected API access" /></div>
       } @else if (verificationError(); as error) {
@@ -21,11 +23,11 @@ import { firstValueFrom } from 'rxjs';
           />
         </div>
       } @else {
-        <p class="mt-3 text-sm text-food-muted" role="status">
+        <p class="mt-3 text-sm leading-6 text-food-muted" role="status">
           Your identity and protected Customer API access were verified.
         </p>
       }
-    </main>
+    </div>
   `,
 })
 export class AuthCheckPage {

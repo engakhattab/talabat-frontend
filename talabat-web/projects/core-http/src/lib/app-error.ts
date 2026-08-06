@@ -31,4 +31,5 @@ export interface AppError {
   readonly title: string;
   readonly detail?: string;
   readonly isNetworkError: boolean;
+  readonly rawError?: unknown;
 }

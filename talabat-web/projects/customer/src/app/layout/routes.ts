@@ -3,6 +3,7 @@ import { CustomerShellComponent } from './customer-shell.component';
 import { authGuard } from '@talabat/core-auth';
 import { profileGuard } from '../core/guards/profile.guard';
 import { onboardingGuard } from '../core/guards/onboarding.guard';
+import { checkoutGuard } from '../core/guards/checkout.guard';
 
 export const routes: Routes = [
   {
@@ -25,6 +26,12 @@ export const routes: Routes = [
           import('../features/cart/pages/cart.page').then((m) => m.CartPage),
       },
       {
+        path: 'checkout',
+        canActivate: [authGuard, profileGuard, checkoutGuard],
+        loadChildren: () =>
+          import('../features/checkout/checkout.routes').then((m) => m.routes),
+      },
+      {
         path: 'profile',
         canActivate: [authGuard, profileGuard],
         loadComponent: () =>
@@ -33,8 +40,7 @@ export const routes: Routes = [
       {
         path: 'orders',
         canActivate: [authGuard, profileGuard],
-        loadComponent: () =>
-          import('../features/orders/pages/orders.page').then((m) => m.OrdersPage),
+        loadChildren: () => import('../features/orders/orders.routes').then((m) => m.routes),
       },
       {
         path: 'auth-check',

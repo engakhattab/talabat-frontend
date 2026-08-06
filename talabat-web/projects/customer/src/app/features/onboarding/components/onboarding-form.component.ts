@@ -2,7 +2,7 @@ import { Component, input, output, signal } from '@angular/core';
 import { form, required, validate, FormField, FieldTree } from '@angular/forms/signals';
 import { CreateProfileRequest } from '@talabat/api-customer';
 import { AppError } from '@talabat/core-http';
-import { ButtonComponent, SpinnerComponent } from '@talabat/shared-ui';
+import { ButtonComponent } from '@talabat/shared-ui';
 
 interface OnboardingModel {
   fullName: string;
@@ -12,7 +12,7 @@ interface OnboardingModel {
 
 @Component({
   selector: 'tal-onboarding-form',
-  imports: [ButtonComponent, SpinnerComponent, FormField],
+  imports: [ButtonComponent, FormField],
   template: `
     <form (ngSubmit)="handleSubmit()" novalidate>
       <div class="mb-4">
@@ -23,10 +23,10 @@ interface OnboardingModel {
           id="onboarding-fullName"
           type="text"
           autocomplete="name"
-          class="w-full rounded-food border border-food-border px-3 py-2 text-food-ink"
+          class="tal-input w-full"
           [class.border-food-error]="form.fullName().invalid()"
           [formField]="form.fullName"
-          [attr.aria-invalid]="form.fullName().invalid()"
+          [attr.aria-invalid]="form.fullName().invalid() ? 'true' : null"
           [attr.aria-describedby]="form.fullName().invalid() ? 'onboarding-fullName-error' : undefined"
         />
         @if (form.fullName().invalid()) {
@@ -44,10 +44,10 @@ interface OnboardingModel {
           id="onboarding-age"
           type="number"
           inputmode="numeric"
-          class="w-full rounded-food border border-food-border px-3 py-2 text-food-ink"
+          class="tal-input w-full"
           [class.border-food-error]="form.age().invalid()"
           [formField]="form.age"
-          [attr.aria-invalid]="form.age().invalid()"
+          [attr.aria-invalid]="form.age().invalid() ? 'true' : null"
           [attr.aria-describedby]="form.age().invalid() ? 'onboarding-age-error' : undefined"
         />
         @if (form.age().invalid()) {
@@ -66,7 +66,7 @@ interface OnboardingModel {
           type="tel"
           autocomplete="tel"
           inputmode="tel"
-          class="w-full rounded-food border border-food-border px-3 py-2 text-food-ink"
+          class="tal-input w-full"
           [formField]="form.phoneNumber"
         />
       </div>
@@ -81,16 +81,13 @@ interface OnboardingModel {
       }
 
       <div class="flex items-center gap-3">
-        <tal-button type="submit" [busy]="busy()" [disabled]="busy()">
+        <tal-button type="submit" size="lg" [busy]="busy()">
           @if (busy()) {
             Creating profile...
           } @else {
             Create profile
           }
         </tal-button>
-        @if (busy()) {
-          <tal-spinner label="Creating your profile" />
-        }
       </div>
     </form>
   `,

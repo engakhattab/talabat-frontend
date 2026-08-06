@@ -27,7 +27,9 @@ import { ClearCartDialogComponent } from '../components/clear-cart-dialog.compon
   ],
   template: `
     <div class="mx-auto w-full max-w-2xl">
-      <h1 class="font-display text-2xl font-bold text-food-ink">Your Cart</h1>
+      <h1 class="font-display text-[1.75rem] leading-[2.125rem] font-bold text-food-ink">
+        Your Cart
+      </h1>
 
       @if (store.notice(); as notice) {
         <div
@@ -86,11 +88,11 @@ import { ClearCartDialogComponent } from '../components/clear-cart-dialog.compon
           <tal-cart-summary />
         </div>
 
-        <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <tal-button variant="secondary" [busy]="store.isMutating()" (pressed)="confirmClearCart()">
             Clear Cart
           </tal-button>
-          <tal-button variant="primary" disabled title="Checkout arrives in Phase 9">
+          <tal-button size="lg" variant="primary" (pressed)="goToCheckout()">
             Proceed to Checkout
           </tal-button>
         </div>
@@ -145,5 +147,9 @@ export class CartPage {
 
   protected goToRestaurants(): void {
     void this.router.navigateByUrl('/restaurants');
+  }
+
+  protected goToCheckout(): void {
+    void this.router.navigateByUrl('/checkout');
   }
 }

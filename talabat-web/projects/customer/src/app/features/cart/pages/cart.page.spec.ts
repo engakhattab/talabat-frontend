@@ -208,6 +208,22 @@ describe('CartPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Item is no longer available');
   });
 
+  it('navigates to checkout from the Proceed to Checkout button', () => {
+    harness.setStatus('loaded');
+    harness.setCart(populatedCart);
+    createPage();
+
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    const checkoutButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((el: Element) => el.textContent?.includes('Proceed to Checkout')) as HTMLButtonElement;
+    checkoutButton.click();
+
+    expect(navigateSpy).toHaveBeenCalledWith('/checkout');
+  });
+
   it('triggers an initial cart load when uninitialized', () => {
     harness.setStatus('uninitialized');
     createPage();

@@ -30,47 +30,45 @@ type MenuViewState =
     SpinnerComponent,
   ],
   template: `
-    <main class="mx-auto w-full max-w-6xl px-3 py-6 sm:px-6 sm:py-9 lg:px-9">
-      @if (viewState() === 'loading') {
-        <div class="grid min-h-56 place-items-center rounded-food-md bg-white shadow-food-sm">
-          <tal-spinner label="Loading menu" />
-        </div>
-      } @else if (viewState() === 'error-retryable') {
-        <tal-error-state
-          [description]="errorDetail()"
-          [title]="errorTitle()"
-          (retry)="reload()"
-        />
-      } @else if (viewState() === 'invalid-parameter' || viewState() === 'not-found') {
-        <tal-error-state
-          description="We couldn't find this restaurant. It may have moved or is no longer available."
-          title="Restaurant not found"
-          (retry)="goBack()"
-        />
-      } @else if (viewState() === 'empty') {
-        <tal-empty-state
-          description="This restaurant has no items available right now."
-          title="No items available"
-          actionLabel="Back to restaurants"
-          (action)="goBack()"
-        />
-      } @else if (menu(); as m) {
-        <tal-menu-header [restaurantName]="m.restaurantName" />
-        <ul class="grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3" role="list">
-          @for (product of m.products; track product.id) {
-            <li>
-              <tal-menu-product-card
-                [product]="product"
-                [restaurantId]="m.restaurantId"
-                [busy]="cartStore.isMutating() && cartStore.mutatingProductId() === product.id"
-                [justAdded]="recentlyAddedProductId() === product.id"
-                (cartEntry)="onCartEntry($event)"
-              />
-            </li>
-          }
-        </ul>
-      }
-    </main>
+    @if (viewState() === 'loading') {
+      <div class="grid min-h-56 place-items-center rounded-food-md bg-white shadow-food-sm">
+        <tal-spinner label="Loading menu" />
+      </div>
+    } @else if (viewState() === 'error-retryable') {
+      <tal-error-state
+        [description]="errorDetail()"
+        [title]="errorTitle()"
+        (retry)="reload()"
+      />
+    } @else if (viewState() === 'invalid-parameter' || viewState() === 'not-found') {
+      <tal-error-state
+        description="We couldn't find this restaurant. It may have moved or is no longer available."
+        title="Restaurant not found"
+        (retry)="goBack()"
+      />
+    } @else if (viewState() === 'empty') {
+      <tal-empty-state
+        description="This restaurant has no items available right now."
+        title="No items available"
+        actionLabel="Back to restaurants"
+        (action)="goBack()"
+      />
+    } @else if (menu(); as m) {
+      <tal-menu-header [restaurantName]="m.restaurantName" />
+      <ul class="grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3" role="list">
+        @for (product of m.products; track product.id) {
+          <li>
+            <tal-menu-product-card
+              [product]="product"
+              [restaurantId]="m.restaurantId"
+              [busy]="cartStore.isMutating() && cartStore.mutatingProductId() === product.id"
+              [justAdded]="recentlyAddedProductId() === product.id"
+              (cartEntry)="onCartEntry($event)"
+            />
+          </li>
+        }
+      </ul>
+    }
   `,
 })
 export class RestaurantMenuPage implements OnInit {

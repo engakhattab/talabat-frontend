@@ -1,0 +1,229 @@
+
+Implement the approved Phase 9 “Checkout and Order Confirmation” artifacts.
+
+The specification, clarification decisions, plan, research, data model, contract,
+checklist, and tasks are now reconciled and are the authoritative implementation
+instructions.
+
+Before modifying source code:
+
+1. Run the required Spec Kit prerequisite checks.
+2. Verify that Phase 8 is committed and the working tree contains no unrelated
+   changes.
+3. Confirm that the active feature is:
+   specs/003-checkout-order-confirmation
+4. Read every approved Phase 9 artifact.
+5. Inspect the real generated services and DTOs again before using them.
+6. Confirm that the repository still matches the analyzed baseline.
+7. Stop and report if any material contract mismatch has reappeared.
+
+SKILL DISCOVERY AND USAGE:
+
+Before implementation, inspect all project-local and permitted global OpenCode
+skills.
+
+Load and use every relevant available skill that materially improves the work,
+including skills related to:
+
+- Angular architecture
+- Angular routing and functional guards
+- Angular signals and state management
+- Angular Signal Forms
+- Angular HTTP and interceptors
+- generated API clients
+- Angular CDK dialog and accessibility
+- Vitest and Angular testing
+- TypeScript
+- security review
+
+Do not assume skill names. Inspect the actual available skill descriptions.
+
+The constitution, approved Phase 9 artifacts, generated API contract, installed
+Angular version, and existing repository patterns take precedence over generic
+skill guidance.
+
+Report which skills were loaded and why.
+
+EXECUTION RULES:
+
+- Follow tasks.md in dependency order.
+- Complete one logical task group at a time.
+- Run the smallest relevant tests after every logical group.
+- Mark a task complete only after its implementation and required verification
+  pass.
+- Use the actual installed Angular APIs.
+- Preserve the existing Phase 5 design system.
+- Preserve Phase 6 authentication and security boundaries.
+- Preserve Phase 7 profile gating and shell behaviour.
+- Preserve Phase 8 CartStore server-authority and concurrency guarantees.
+- Keep feature routes lazy according to the approved plan.
+- Keep writable signals private and expose readonly state.
+- Use generated @talabat/api-customer services exclusively for API calls.
+- Never inject HttpClient directly into a feature.
+- Never edit generated API files.
+- Never hardcode API URLs.
+- Never fabricate missing DTO fields.
+- Never calculate or store authoritative prices or totals on the client.
+- Never automatically retry checkout after an ambiguous network outcome.
+- Never display success without verified successful server evidence.
+- Do not implement payment processing, tracking, cancellation, order history,
+  full address management, or other Phase 10 behaviour.
+- Do not perform unrelated refactoring.
+- Do not suppress failing tests.
+
+CONTRACT RULES:
+
+Use only the real generated contract fields.
+
+For OrderDetailResponse, do not invent fields such as:
+
+- status
+- restaurantName
+- createdAt
+- district
+- building
+- productId when absent from order items
+
+Use the actual generated equivalents and display only information supported by
+the contract.
+
+For address creation and display, use the actual generated fields, including
+the correct names and optionality such as:
+
+- street
+- city
+- buildingNumber
+- floor
+- makeDefault
+
+Do not create handwritten copies that contradict generated DTOs.
+
+CHECKOUT 422 SAFETY RULE:
+
+AppError.rawError has type unknown.
+
+Do not rely solely on:
+
+appError.rawError as CheckoutUnavailableResponse
+
+A TypeScript assertion does not validate runtime data.
+
+At the checkout boundary, implement the smallest approved runtime validation or
+type guard necessary to prove that rawError has the documented
+CheckoutUnavailableResponse shape before reading unavailableItems.
+
+The validation must:
+
+- reject null and primitive values
+- verify that unavailableItems has the expected collection shape
+- safely validate the fields actually consumed by the UI
+- avoid unsafe access to malformed payloads
+- fall back to the normal safe unknown-error path when validation fails
+- remain local to the checkout-owned error boundary
+- not weaken global Problem Details handling
+- not require generated-client edits
+- not spread raw HttpErrorResponse handling across components
+
+Add focused tests proving:
+
+1. A valid checkout 422 payload survives the interceptor.
+2. A valid payload is recognized by the checkout boundary.
+3. unavailableItems is presented correctly.
+4. A malformed 422 body does not crash the application.
+5. A normal Problem Details response remains mapped correctly.
+6. An unknown 422 response follows a safe fallback path.
+7. rawError is not rendered directly to the user.
+
+CHECKOUT SUBMISSION SAFETY:
+
+- One user submission must issue no more than one checkout request.
+- Disable or lock the submission action while the request is active.
+- Do not automatically resend after status 0 or another ambiguous failure.
+- Preserve enough context for the user to inspect the cart or orders safely.
+- A 201 response must trigger only the approved CartStore reconciliation.
+- A 422 response must preserve the existing cart and recovery context.
+- Session loss must not produce a false success state.
+- Browser refresh on confirmation must use the approved server read path rather
+  than transient navigation data only.
+
+ADDRESS BOUNDARY:
+
+Implement only the minimum inline address-creation flow approved for Phase 9.
+
+It must be a reusable boundary suitable for later Phase 10 reuse, not a
+checkout-only duplicate.
+
+Do not add full address management, removal, set-default management, or broad
+profile editing.
+
+ACCESSIBILITY AND RESPONSIVENESS:
+
+Implement and verify the approved:
+
+- keyboard operation
+- focus management
+- error focus
+- ARIA relationships
+- busy announcements
+- dialog focus restoration
+- minimum touch targets
+- 320px, 768px, and 1280px layouts
+- 200% zoom behaviour
+
+VERIFICATION:
+
+Run the exact relevant commands from tasks.md.
+
+At minimum, when affected:
+
+- focused core-http tests
+- focused checkout store tests
+- checkout component/page tests
+- address modal tests
+- order confirmation tests
+- customer test suite
+- affected library tests
+- customer production build
+- git diff --check HEAD
+
+Do not claim live checkout success from mocks.
+
+Perform live verification only when Identity, Customer API, valid catalog data,
+a test account, and the required profile/cart state are available.
+
+Separate:
+
+- automated verification completed
+- live manual verification completed
+- manual verification still required
+
+GIT RULES:
+
+- Do not run git add.
+- Do not run git commit.
+- Do not run git reset.
+- Do not run git restore.
+- Do not run git checkout.
+- Do not run git clean.
+- Do not run git stash.
+
+Leave all Phase 9 changes uncommitted so they can be inspected and documented
+against HEAD.
+
+At completion:
+
+- stop before Phase 10
+- report all added, modified, deleted, and renamed files
+- report completed and incomplete tasks
+- map requirements to implementation and test evidence
+- report exact verification commands and results
+- report manual tests still required
+- report architecture or contract deviations
+- report all known risks
+- report skills used
+- confirm generated files were not manually edited
+- confirm authoritative totals were not client-calculated
+- confirm checkout automatic retry was not introduced
+- confirm malformed 422 payloads are handled safely
+- confirm no Phase 10 scope was introduced
+- confirm git add and git commit were not run

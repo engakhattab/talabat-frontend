@@ -6,7 +6,7 @@ import { ButtonComponent } from '@talabat/shared-ui';
   selector: 'tal-clear-cart-dialog',
   imports: [ButtonComponent],
   template: `
-    <div class="p-6">
+    <div class="tal-dialog-card">
       <h2 id="clear-cart-dialog-title" class="font-display text-xl font-semibold text-food-ink">
         Clear your cart?
       </h2>

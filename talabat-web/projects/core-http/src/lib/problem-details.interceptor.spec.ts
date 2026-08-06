@@ -26,16 +26,14 @@ describe('problemDetailsInterceptor', () => {
   afterEach(() => httpTesting.verify());
 
   it('maps a known Problem Details error code to AppError', async () => {
+    const body = {
+      title: 'Customer profile is required',
+      detail: 'Create a profile before continuing.',
+      errorCode: 'ProfileNotCreated',
+    };
     const response = firstValueFrom(http.get('/test'));
 
-    httpTesting.expectOne('/test').flush(
-      {
-        title: 'Customer profile is required',
-        detail: 'Create a profile before continuing.',
-        errorCode: 'ProfileNotCreated',
-      },
-      { status: 409, statusText: 'Conflict' },
-    );
+    httpTesting.expectOne('/test').flush(body, { status: 409, statusText: 'Conflict' });
 
     await expect(response).rejects.toEqual({
       status: 409,
@@ -43,18 +41,17 @@ describe('problemDetailsInterceptor', () => {
       title: 'Customer profile is required',
       detail: 'Create a profile before continuing.',
       isNetworkError: false,
+      rawError: body,
     } satisfies AppError);
   });
 
   it('degrades an unrecognised backend error code to Unknown', async () => {
+    const body = { title: 'A newer backend error', errorCode: 'FutureErrorCode' };
     const response = firstValueFrom(http.get('/test'));
 
     httpTesting
       .expectOne('/test')
-      .flush(
-        { title: 'A newer backend error', errorCode: 'FutureErrorCode' },
-        { status: 422, statusText: 'Unprocessable Entity' },
-      );
+      .flush(body, { status: 422, statusText: 'Unprocessable Entity' });
 
     await expect(response).rejects.toEqual({
       status: 422,
@@ -62,6 +59,7 @@ describe('problemDetailsInterceptor', () => {
       title: 'A newer backend error',
       detail: undefined,
       isNetworkError: false,
+      rawError: body,
     } satisfies AppError);
   });
 
@@ -94,6 +92,50 @@ describe('problemDetailsInterceptor', () => {
     } satisfies AppError);
   });
 
+  it('preserves a 422 CheckoutUnavailableResponse body on AppError.rawError', async () => {
+    const checkoutBody = {
+      status: 'unavailable',
+      unavailableItems: [
+        {
+          productId: 12,
+          productName: 'Chicken Shawarma Deluxe',
+          reason: 'Out of stock',
+        },
+      ],
+    };
+    const response = firstValueFrom(http.get('/test'));
+
+    httpTesting
+      .expectOne('/test')
+      .flush(checkoutBody, { status: 422, statusText: 'Unprocessable Entity' });
+
+    await expect(response).rejects.toEqual({
+      status: 422,
+      code: AppErrorCode.Unknown,
+      title: 'Something went wrong',
+      detail: undefined,
+      isNetworkError: false,
+      rawError: checkoutBody,
+    } satisfies AppError);
+  });
+
+  it('keeps an unknown 422 body safe without runtime exceptions', async () => {
+    const body = { unexpected: 'shape' };
+    const response = firstValueFrom(http.get('/test'));
+
+    httpTesting.expectOne('/test').flush(body, { status: 422, statusText: 'Unprocessable Entity' });
+
+    const error = await response.then(
+      () => undefined as never,
+      (e: unknown) => e as AppError,
+    );
+
+    expect(error.status).toBe(422);
+    expect(error.code).toBe(AppErrorCode.Unknown);
+    expect(error.isNetworkError).toBe(false);
+    expect(error.rawError).toEqual(body);
+  });
+
   it.each([
     ['CrossRestaurantCart', 409],
     ['CartExpired', 409],
@@ -104,14 +146,12 @@ describe('problemDetailsInterceptor', () => {
     ['RestaurantInactive', 422],
     ['InvalidQuantity', 400],
   ] as const)('maps cart domain error code %s to AppError', async (errorCode, status) => {
+    const body = { title: `${errorCode} occurred`, detail: 'Cart operation failed', errorCode };
     const response = firstValueFrom(http.get('/test'));
 
     httpTesting
       .expectOne('/test')
-      .flush(
-        { title: `${errorCode} occurred`, detail: 'Cart operation failed', errorCode },
-        { status, statusText: 'Error' },
-      );
+      .flush(body, { status, statusText: 'Error' });
 
     await expect(response).rejects.toEqual({
       status,
@@ -119,6 +159,7 @@ describe('problemDetailsInterceptor', () => {
       title: `${errorCode} occurred`,
       detail: 'Cart operation failed',
       isNetworkError: false,
+      rawError: body,
     } satisfies AppError);
   });
 });

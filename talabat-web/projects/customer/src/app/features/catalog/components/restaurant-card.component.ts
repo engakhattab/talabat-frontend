@@ -13,7 +13,7 @@ import { CardComponent, StatusChipComponent } from '@talabat/shared-ui';
       (click)="select.emit(restaurant().id)"
     >
       <tal-card elevated class="h-full transition-shadow hover:shadow-food-md">
-        <div card-media class="relative aspect-video overflow-hidden bg-food-subtle">
+        <div card-media class="relative h-40 overflow-hidden bg-food-subtle">
           @if (hasUsableImage()) {
             <img
               [alt]="restaurant().name + ' restaurant'"
@@ -29,7 +29,7 @@ import { CardComponent, StatusChipComponent } from '@talabat/shared-ui';
             >
               <svg aria-hidden="true" class="h-12 w-12" fill="none" viewBox="0 0 24 24">
                 <path
-                  d="m4 16 4-5 3 3 3-4 6 6M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"
+                  d="m4 16 4-5 3 3 3-4 6 6M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1v14a1 1 0 0 0 1 1Z"
                   stroke="currentColor"
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -39,12 +39,12 @@ import { CardComponent, StatusChipComponent } from '@talabat/shared-ui';
             </div>
           }
         </div>
-        <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start justify-between gap-3 p-4">
           <div class="min-w-0">
-            <h2 class="font-display text-lg leading-6 font-semibold text-food-ink">
+            <h2 class="font-display text-[1.125rem] leading-6 font-semibold text-food-ink">
               {{ restaurant().name }}
             </h2>
-            <p class="mt-1 text-sm leading-5 text-food-muted">{{ restaurant().description }}</p>
+            <p class="mt-1 line-clamp-2 text-sm leading-5 text-food-muted">{{ restaurant().description }}</p>
           </div>
           <tal-status-chip [label]="availabilityLabel()" [tone]="availabilityTone()" />
         </div>

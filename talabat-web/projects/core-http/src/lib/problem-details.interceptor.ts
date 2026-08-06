@@ -27,5 +27,6 @@ function toAppError(e: HttpErrorResponse): AppError {
     title: body?.title ?? 'Something went wrong',
     detail: body?.detail ?? undefined,
     isNetworkError: false,
+    rawError: e.error ?? undefined,
   };
 }

@@ -11,8 +11,8 @@ import { CartStore } from '../cart.store';
       aria-label="Cart summary"
     >
       <div class="flex items-center justify-between gap-3">
-        <h2 class="text-sm font-semibold text-food-ink">Order total</h2>
-        <p class="text-base font-bold text-food-ink" aria-live="polite">
+        <h2 class="text-base font-semibold text-food-ink">Order total</h2>
+        <p class="text-[1.125rem] leading-6 font-bold text-food-ink" aria-live="polite">
           <span class="tal-visually-hidden">Grand total:</span>
           {{ store.total() | talMoney }}
         </p>

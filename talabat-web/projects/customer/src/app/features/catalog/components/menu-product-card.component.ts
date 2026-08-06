@@ -1,6 +1,7 @@
 import { Component, booleanAttribute, input, output } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MenuProductDto } from '@talabat/api-customer';
+import { ButtonComponent } from '@talabat/shared-ui';
 
 export interface CartEntryRequest {
   readonly restaurantId: number;
@@ -9,26 +10,26 @@ export interface CartEntryRequest {
 
 @Component({
   selector: 'tal-menu-product-card',
-  imports: [DecimalPipe],
+  imports: [ButtonComponent, DecimalPipe],
   template: `
-    <article class="rounded-food border border-food-border bg-white p-3 shadow-food-sm">
-      <div class="flex items-start justify-between gap-3">
+    <article class="flex flex-col rounded-food border border-food-border bg-white p-4 shadow-food-sm">
+      <div class="flex items-start justify-between gap-4">
         <div class="min-w-0 flex-1">
-          <h3 class="text-sm font-semibold text-food-ink">{{ product().name }}</h3>
-          <p class="mt-0.5 text-xs text-food-muted">{{ product().description }}</p>
-          <p class="mt-1 text-sm font-medium text-food-ink">
+          <h3 class="text-[1.125rem] leading-6 font-semibold text-food-ink">{{ product().name }}</h3>
+          <p class="mt-1 line-clamp-2 text-sm leading-5 text-food-muted">{{ product().description }}</p>
+          <p class="mt-2 text-base font-bold text-food-ink">
             {{ product().price.amount | number:'1.2-2' }}
             @if (product().price.currency) {
-              <span class="text-xs text-food-muted">{{ product().price.currency }}</span>
+              <span class="ms-1 text-sm font-medium text-food-muted">{{ product().price.currency }}</span>
             }
           </p>
         </div>
         <div
-          class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-food bg-food-tint"
+          class="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-food-md bg-food-tint"
           role="img"
           [attr.aria-label]="product().name + ' image placeholder'"
         >
-          <svg aria-hidden="true" class="h-6 w-6 text-food-muted" fill="none" viewBox="0 0 24 24">
+          <svg aria-hidden="true" class="h-8 w-8 text-food-muted" fill="none" viewBox="0 0 24 24">
             <path
               d="m4 16 4-5 3 3 3-4 6 6M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1v14a1 1 0 0 0 1 1Z"
               stroke="currentColor"
@@ -39,31 +40,25 @@ export interface CartEntryRequest {
           </svg>
         </div>
       </div>
-      <div class="mt-2">
+      <div class="mt-4">
         @if (product().isAvailable) {
-          <button
-            type="button"
-            class="w-full min-h-[42px] rounded-food bg-food-primary px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-            [attr.aria-busy]="busy() ? 'true' : null"
-            [disabled]="busy()"
+          <tal-button
+            class="tal-button--fluid"
+            size="lg"
+            [busy]="busy()"
             (click)="onAddToCart()"
           >
             {{ busy() ? 'Adding to cart' : 'Add to cart' }}
-          </button>
+          </tal-button>
           @if (justAdded()) {
-            <p class="mt-1 text-center text-xs font-medium text-food-success" role="status">
+            <p class="mt-2 text-center text-sm font-medium text-food-success" role="status">
               Added to your cart
             </p>
           }
         } @else {
-          <button
-            type="button"
-            class="w-full min-h-[42px] rounded-food bg-food-subtle px-3 py-2 text-sm font-medium text-food-muted"
-            disabled
-            aria-disabled="true"
-          >
+          <tal-button class="tal-button--fluid" size="lg" variant="secondary" disabled>
             Unavailable
-          </button>
+          </tal-button>
         }
       </div>
     </article>

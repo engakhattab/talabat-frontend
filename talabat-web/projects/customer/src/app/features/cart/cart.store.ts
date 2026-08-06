@@ -18,6 +18,7 @@ export type CartNoticeKind =
   | 'cart-not-active'
   | 'invalid-quantity'
   | 'cart-item-not-found'
+  | 'unavailable-items'
   | 'network'
   | 'general';
 
@@ -167,7 +168,7 @@ export class CartStore {
     this.mutatingProductIdState.set(pending.productId);
     return this.enqueue(async () => {
       await firstValueFrom(this.cartApi.clearCart());
-      this.applyEmptyCart();
+      this.applyEmptyCartInternal();
       const cart = await firstValueFrom(
         this.cartApi.addCartItem({ addCartItemRequest: pending }),
       );
@@ -228,7 +229,7 @@ export class CartStore {
     this.isMutatingState.set(true);
     try {
       await this.enqueue(() => firstValueFrom(this.cartApi.clearCart()));
-      this.applyEmptyCart();
+      this.applyEmptyCartInternal();
     } catch (err) {
       this.handleMutationError(err as AppError);
     } finally {
@@ -246,6 +247,14 @@ export class CartStore {
     this.isMutatingState.set(false);
     this.mutatingProductIdState.set(null);
     this.conflictAddRequestState.set(null);
+  }
+
+  applyEmptyCart(): void {
+    this.applyEmptyCartInternal();
+  }
+
+  showNotice(notice: CartNotice): void {
+    this.noticeState.set(notice);
   }
 
   private enqueue<T>(operation: () => Promise<T>): Promise<T> {
@@ -266,7 +275,7 @@ export class CartStore {
     }
   }
 
-  private applyEmptyCart(): void {
+  private applyEmptyCartInternal(): void {
     const current = this.cartState();
     this.cartState.set({
       id: null,
@@ -306,7 +315,7 @@ export class CartStore {
         break;
       case AppErrorCode.CartExpired:
       case AppErrorCode.CartNotActive:
-        this.applyEmptyCart();
+        this.applyEmptyCartInternal();
         this.noticeState.set({
           kind: appError.code === AppErrorCode.CartExpired ? 'cart-expired' : 'cart-not-active',
           title:

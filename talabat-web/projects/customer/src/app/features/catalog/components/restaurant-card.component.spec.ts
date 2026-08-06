@@ -1,14 +1,18 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RestaurantSummaryDto } from '@talabat/api-customer';
 
 import { RestaurantCardComponent } from './restaurant-card.component';
 
+@Component({ template: '' })
+class AnchorTargetComponent {}
+
 describe('RestaurantCardComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RestaurantCardComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([{ path: '**', component: AnchorTargetComponent }])],
     }).compileComponents();
   });
 
@@ -50,7 +54,7 @@ describe('RestaurantCardComponent', () => {
     expect(anchor.getAttribute('href')).toBe('/restaurants/1');
   });
 
-  it('emits select output with restaurant ID when clicked', () => {
+  it('emits select output with restaurant ID when clicked', async () => {
     const fixture = TestBed.createComponent(RestaurantCardComponent);
     fixture.componentRef.setInput('restaurant', restaurant);
     fixture.detectChanges();
@@ -62,6 +66,7 @@ describe('RestaurantCardComponent', () => {
     anchor.click();
 
     expect(selectSpy).toHaveBeenCalledWith(1);
+    await fixture.whenStable();
   });
 });
 
