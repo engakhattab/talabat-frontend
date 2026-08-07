@@ -43,12 +43,33 @@ describe('OrderConfirmationPage', () => {
 
   const createFixture = (orderId: string): ComponentFixture<OrderConfirmationPage> => {
     const created = TestBed.createComponent(OrderConfirmationPage);
-    created.componentRef.setInput('orderIdParam', orderId);
+    created.componentRef.setInput('orderId', orderId);
     created.detectChanges();
     component = created.componentInstance;
     fixture = created;
     return created;
   };
+
+  it('binds route parameter orderId when navigated via router', async () => {
+    const { RouterTestingHarness } = await import('@angular/router/testing');
+    const { provideRouter, withComponentInputBinding } = await import('@angular/router');
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [OrderConfirmationPage],
+      providers: [
+        { provide: OrdersApiService, useValue: api },
+        provideRouter([{ path: 'orders/:orderId', component: OrderConfirmationPage }], withComponentInputBinding()),
+      ],
+    }).compileComponents();
+
+    api.getOrderDetails.mockReturnValue(of(order));
+    const harness = await RouterTestingHarness.create();
+    const instance = await harness.navigateByUrl('/orders/7', OrderConfirmationPage);
+    harness.detectChanges();
+
+    expect(api.getOrderDetails).toHaveBeenCalledWith({ orderId: 7 });
+    expect(instance.viewState()).toBe('loaded');
+  });
 
   it('extracts the order id from the route param and fetches order details', async () => {
     api.getOrderDetails.mockReturnValue(of(order));

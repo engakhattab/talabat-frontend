@@ -113,7 +113,7 @@ type OrderViewState = 'loading' | 'loaded' | 'error';
   `,
 })
 export class OrderConfirmationPage {
-  readonly orderIdParam = input.required<string>();
+  readonly orderIdParam = input.required<string>({ alias: 'orderId' });
 
   private readonly ordersApi = inject(OrdersApiService);
 

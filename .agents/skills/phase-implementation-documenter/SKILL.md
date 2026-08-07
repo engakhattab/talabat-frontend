@@ -6,8 +6,8 @@ description: >
   before staging or committing the changes. Inspects tracked, untracked,
   modified, deleted, renamed, and staged files; compares them with HEAD;
   explains every new or changed code block; maps the implementation to
-  specifications, tasks, and tests; and creates documentation without
-  modifying application source code.
+  specifications, tasks, and existing test evidence; and creates documentation
+  without modifying application source code or executing any tests.
 ---
 
 # Phase Implementation Documenter
@@ -57,6 +57,46 @@ Never run any of the following commands:
 
 Only create or update the documentation file explicitly requested by the user.
 
+### Absolute test-execution prohibition
+
+This skill is documentation-only. The implementation is expected to have been
+tested before this skill is invoked.
+
+Never execute tests of any kind, including but not limited to:
+
+- `npm test`
+- `ng test`
+- `npx ng test`
+- `vitest`
+- `jest`
+- `dotnet test`
+- `pytest`
+- `playwright test`
+- `cypress`
+- end-to-end tests
+- integration tests
+- unit tests
+- component tests
+- contract tests
+- test scripts exposed through `package.json`, solution files, Makefiles, or CI helpers
+
+Do not execute a test even when:
+
+- the working tree looks suspicious
+- a requirement appears unverified
+- an existing test file was modified
+- a previous report says tests passed
+- a test would be quick
+- running the test would make the report more certain
+
+Instead:
+
+- inspect test source code statically when it helps explain coverage
+- inspect existing test-result artifacts or reports if they already exist
+- clearly label test execution as `NOT RUN BY THIS SKILL`
+- distinguish static test-code evidence from previously recorded runtime results
+- never claim a test passed based only on reading its source code
+
 Do not update:
 
 - implementation source files
@@ -79,7 +119,7 @@ Use the following priority order:
 
 1. Current source-code contents
 2. Git differences between HEAD and the working tree
-3. Test implementation and actual test results
+3. Test implementation and pre-existing test results already available before this skill runs
 4. Phase specification and tasks
 5. Architecture plans, constitution, and roadmap
 6. Previous phase reports
@@ -563,6 +603,8 @@ If a required flow is absent or incomplete, report that explicitly.
 
 ## Test Explanation
 
+This section is based on **static inspection only**. Do not execute tests.
+
 For every added or modified test file, explain:
 
 - production behaviour protected
@@ -632,7 +674,9 @@ Allowed statuses:
 - Unable to verify
 - Not applicable
 
-Verify task completion from source code and test results.
+Verify task completion from source code and any pre-existing test evidence already
+available in the repository or supplied by the user. Never run tests to create new
+verification evidence.
 
 Do not automatically trust:
 
@@ -769,62 +813,74 @@ Report every boundary violation with its file path and affected import.
 
 ---
 
-## Safe Verification Commands
+## Safe Verification — Documentation-Only
 
-Inspect available package scripts and project configuration before choosing
-verification commands.
+This skill must not execute tests.
 
-Run only safe commands relevant to the changed files.
+Use only safe, read-only inspection commands needed to understand the current
+implementation and Git baseline.
 
-Examples can include:
+Allowed examples include:
 
 ```bash
+git status --short
+git status
+git branch --show-current
+git rev-parse HEAD
+git log -5 --oneline
+git diff --stat HEAD
+git diff --name-status HEAD
+git diff --summary HEAD
+git diff --numstat HEAD
+git diff --find-renames HEAD
 git diff --check HEAD
-npm test -- --watch=false
-npx ng test <project-name> --watch=false
-npx ng build <project-name> --configuration=production
-npm run <safe-verification-script>
+git diff HEAD
+git diff --cached
+git ls-files --others --exclude-standard
+git show HEAD:<relative-file-path>
 ```
 
-Do not:
+You may inspect project configuration and scripts to explain how the project is
+normally tested or built, but do not execute test commands.
 
-- start implementation work
-- install packages
-- regenerate API clients unless explicitly requested
-- update lock files
-- modify source code to make tests pass
-- start the next phase
-- run destructive commands
+### Test evidence rules
 
-For every verification command, report:
+For tests, report one of:
 
-- exact command
-- result:
-  - PASS
-  - FAIL
-  - NOT RUN
-- duration when available
-- important output
-- failure reason
-- whether the failure appears related to the current phase
-- whether manual verification is still required
+- `NOT RUN BY THIS SKILL — source inspected only`
+- `PRE-EXISTING PASS EVIDENCE — supplied by user/repository`
+- `PRE-EXISTING FAIL EVIDENCE — supplied by user/repository`
+- `NO RUNTIME EVIDENCE AVAILABLE`
 
-Never claim a command passed unless it was actually executed successfully.
+Never transform static inspection into a claim that a test passed.
+
+If pre-existing test output exists, record:
+
+- where the evidence came from
+- exact command if it is recorded
+- result
+- whether the result predates the current documentation run
+- whether the result appears relevant to the current diff
+
+### Build execution
+
+Do not run a build automatically as part of this documentation skill.
+
+If build evidence already exists, report it as pre-existing evidence.
+
+If the user explicitly asks this skill to run a build in the same request, that
+permission applies only to the build and does not permit tests.
 
 Separate verification into:
 
-1. Automatically verified
-2. Manually verified from existing evidence
-3. Manual verification still required
-4. Unable to verify
+1. Statically verified from source/Git
+2. Pre-existing test/build evidence
+3. Manual verification evidence supplied by the user
+4. Still unverified
+5. Unable to verify
 
-Do not start backend services or browser automation unless:
-
-- the user explicitly permits it
-- the phase instructions require it
-- the required environment is available
-
----
+The absence of newly executed tests is expected behavior for this skill and must
+not be treated as a defect in the documentation process.
 
 ## Quality and Risk Review
 
@@ -915,11 +971,11 @@ The report should normally include:
 ## 15. Error and Async States
 ## 16. Accessibility and Responsive Design
 ## 17. Runtime User Flows
-## 18. Tests and What Each Test Proves
+## 18. Test Code and What Each Test Is Intended to Prove
 ## 19. Requirement and Task Traceability
 ## 20. Security Boundary Review
 ## 21. Dependency Boundary Review
-## 22. Verification Commands and Results
+## 22. Static Verification and Pre-existing Evidence
 ## 23. Problems, Risks, and Missing Coverage
 ## 24. Manual Testing Guide
 ## 25. Concepts a Beginner Must Learn
@@ -957,7 +1013,7 @@ Do not omit code merely because it looks repetitive.
 
 Do not hide:
 
-- failed tests
+- pre-existing failed test evidence
 - incomplete requirements
 - missing manual verification
 - architecture deviations
@@ -999,10 +1055,10 @@ After writing the requested Markdown document, print a concise summary containin
 - number of untracked files
 - total added lines
 - total deleted lines
-- verification commands run
-- tests passed
-- tests failed
-- build result
+- read-only inspection commands run
+- test execution: `NOT RUN BY THIS SKILL`
+- pre-existing test evidence found, if any
+- pre-existing build evidence found, if any
 - requirements fully implemented
 - requirements partially implemented
 - requirements not implemented
@@ -1012,6 +1068,8 @@ After writing the requested Markdown document, print a concise summary containin
 - confirmation that no destructive Git command was run
 - confirmation that `git add` was not run
 - confirmation that `git commit` was not run
+- confirmation that no tests were executed
+- confirmation that no build was executed unless explicitly requested by the user
 - confirmation that the next project phase was not started
 
 Stop after producing the documentation file and console summary.
