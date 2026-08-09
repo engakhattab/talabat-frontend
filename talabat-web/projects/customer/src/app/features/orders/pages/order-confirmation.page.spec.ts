@@ -106,9 +106,27 @@ describe('OrderConfirmationPage', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent as string;
+    expect(fixture.nativeElement.querySelector('h1').textContent?.trim()).toBe('Order Details');
     expect(text).toContain('Order #1042');
     expect(text).toContain('Cash on Delivery');
     expect(text).toContain('2026');
+  });
+
+  it('renders Back to orders and Back to restaurants navigation links', async () => {
+    api.getOrderDetails.mockReturnValue(of(order));
+
+    fixture = createFixture('1042');
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    const anchors = Array.from(fixture.nativeElement.querySelectorAll('a')) as HTMLAnchorElement[];
+    const backToOrders = anchors.find((a) => a.textContent?.includes('Back to orders'));
+    const backToRestaurants = anchors.find((a) => a.textContent?.includes('Back to restaurants'));
+
+    expect(backToOrders).toBeDefined();
+    expect(backToOrders?.getAttribute('href')).toBe('/orders');
+    expect(backToRestaurants).toBeDefined();
+    expect(backToRestaurants?.getAttribute('href')).toBe('/restaurants');
   });
 
   it('renders the delivery address snapshot', async () => {

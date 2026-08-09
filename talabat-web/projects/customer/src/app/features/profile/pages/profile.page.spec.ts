@@ -1,38 +1,78 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
+import { ProfileResponse } from '@talabat/api-customer';
+import { AppError, AppErrorCode } from '@talabat/core-http';
+import { DialogService } from '@talabat/shared-ui';
 import { ProfileStore } from '../../../core/profile/profile.store';
 
+import { AddressFormModalComponent } from '../../../ui/address-form-modal.component';
+import { RemoveAddressDialogComponent } from '../components/remove-address-dialog.component';
 import { ProfilePage } from './profile.page';
 
 describe('ProfilePage', () => {
   let fixture: ComponentFixture<ProfilePage>;
+  let harness: ReturnType<typeof createProfileHarness>;
+  let dialog: { openSheet: ReturnType<typeof vi.fn>; openModal: ReturnType<typeof vi.fn> };
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  const defaultProfile: ProfileResponse = {
+    id: 1,
+    fullName: 'Jane Doe',
+    age: 30,
+    phoneNumber: '+20 100 123 4567',
+    addresses: [],
+  };
+
+  beforeEach(() => {
+    harness = createProfileHarness(defaultProfile);
+    dialog = { openSheet: vi.fn(), openModal: vi.fn() };
+
+    TestBed.configureTestingModule({
       imports: [ProfilePage],
       providers: [
         provideRouter([]),
-        {
-          provide: ProfileStore,
-          useValue: {
-            profile: signal({
-              id: 1,
-              fullName: 'Jane Doe',
-              age: 30,
-              phoneNumber: '+20 100 123 4567',
-              addresses: [],
-            }).asReadonly(),
-          },
-        },
+        { provide: ProfileStore, useValue: harness.store },
+        { provide: DialogService, useValue: dialog },
       ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ProfilePage);
-    fixture.detectChanges();
+    });
   });
 
+  function createPage(): void {
+    fixture = TestBed.createComponent(ProfilePage);
+    fixture.detectChanges();
+  }
+
+  function buttonWithText(label: string): HTMLButtonElement {
+    const button = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    ).find((el: Element) => el.textContent?.includes(label)) as HTMLButtonElement;
+    expect(button).toBeTruthy();
+    return button;
+  }
+
+  function fill(key: string, value: string): void {
+    const input = fixture.nativeElement.querySelector(`#profile-${key}`) as HTMLInputElement;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  function submitForm(): void {
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges();
+  }
+
+  async function flush(): Promise<void> {
+    await Promise.resolve();
+    await Promise.resolve();
+    fixture.detectChanges();
+  }
+
   it('renders profile values as labelled description terms', () => {
+    createPage();
+
     const terms = Array.from(
       fixture.nativeElement.querySelectorAll('dt') as NodeListOf<HTMLElement>,
     ).map((dt) => dt.textContent?.trim());
@@ -48,35 +88,271 @@ describe('ProfilePage', () => {
     expect(values).toContain('+20 100 123 4567');
   });
 
-  it('shows a muted Not provided value when the phone number is missing', async () => {
-    TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [ProfilePage],
-      providers: [
-        provideRouter([]),
-        {
-          provide: ProfileStore,
-          useValue: {
-            profile: signal({
-              id: 2,
-              fullName: 'Jane Doe',
-              age: 30,
-              phoneNumber: null,
-              addresses: [],
-            }).asReadonly(),
-          },
-        },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ProfilePage);
-    fixture.detectChanges();
+  it('shows a muted Not provided value when the phone number is missing', () => {
+    harness.setProfile({ ...defaultProfile, phoneNumber: null });
+    createPage();
 
     expect(fixture.nativeElement.textContent).toContain('Not provided');
   });
 
-  it('renders a Browse restaurants action and omits a redundant sign-out action', () => {
+  it('renders a Browse restaurants action', () => {
+    createPage();
+
     expect(fixture.nativeElement.textContent).toContain('Browse restaurants');
-    expect(fixture.nativeElement.textContent).not.toContain('Sign out');
+  });
+
+  it('pre-populates the edit form with the current profile values', async () => {
+    createPage();
+
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const fullName = fixture.nativeElement.querySelector('#profile-fullName') as HTMLInputElement;
+    const age = fixture.nativeElement.querySelector('#profile-age') as HTMLInputElement;
+    const phoneNumber = fixture.nativeElement.querySelector(
+      '#profile-phoneNumber',
+    ) as HTMLInputElement;
+
+    expect(fullName.value).toBe('Jane Doe');
+    expect(age.value).toBe('30');
+    expect(phoneNumber.value).toBe('+20 100 123 4567');
+  });
+
+  it('returns to view mode without saving when edit is cancelled', () => {
+    createPage();
+
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Save changes');
+
+    buttonWithText('Cancel').click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Save changes');
+    expect(harness.store.updateProfile).not.toHaveBeenCalled();
+  });
+
+  it('shows a required error for a cleared full name without submitting', () => {
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', '');
+    submitForm();
+
+    expect(fixture.nativeElement.textContent).toContain('Full name is required.');
+    expect(harness.store.updateProfile).not.toHaveBeenCalled();
+  });
+
+  it('rejects a whitespace-only full name', () => {
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', '   ');
+    submitForm();
+
+    expect(fixture.nativeElement.textContent).toContain('Enter your full name.');
+    expect(harness.store.updateProfile).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-positive age and preserves entered values', () => {
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', 'Jane Smith');
+    fill('age', '0');
+    fill('phoneNumber', '+20 100 555 0000');
+    submitForm();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Enter a whole number greater than zero.',
+    );
+    expect(harness.store.updateProfile).not.toHaveBeenCalled();
+
+    const fullName = fixture.nativeElement.querySelector('#profile-fullName') as HTMLInputElement;
+    expect(fullName.value).toBe('Jane Smith');
+  });
+
+  it('submits an update request and returns to view mode with a success indication', async () => {
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', '  Jane Smith  ');
+    fill('age', '31');
+    fill('phoneNumber', '+20 100 555 0000');
+    submitForm();
+    await flush();
+
+    expect(harness.store.updateProfile).toHaveBeenCalledWith({
+      fullName: 'Jane Smith',
+      age: 31,
+      phoneNumber: '+20 100 555 0000',
+    });
+    expect(fixture.nativeElement.textContent).not.toContain('Save changes');
+    expect(fixture.nativeElement.textContent).toContain('Your profile has been updated.');
+  });
+
+  it('reflects the updated server profile in view mode after saving', async () => {
+    const updated: ProfileResponse = {
+      ...defaultProfile,
+      fullName: 'Jane Smith',
+      age: 31,
+      phoneNumber: '+20 100 555 0000',
+    };
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', 'Jane Smith');
+    fill('age', '31');
+    fill('phoneNumber', '+20 100 555 0000');
+    submitForm();
+
+    harness.setProfile(updated);
+    await flush();
+
+    expect(fixture.nativeElement.textContent).toContain('Jane Smith');
+    expect(fixture.nativeElement.textContent).toContain('31');
+  });
+
+  it('stays in edit mode and shows a server error banner when the update fails', async () => {
+    const error: AppError = {
+      status: 400,
+      code: AppErrorCode.Unknown,
+      title: 'Invalid profile data',
+      detail: 'Age is not supported.',
+      isNetworkError: false,
+    };
+    harness.store.updateProfile.mockRejectedValue(error);
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', 'Jane Smith');
+    fill('age', '31');
+    submitForm();
+    await flush();
+
+    expect(fixture.nativeElement.textContent).toContain('Save changes');
+    expect(fixture.nativeElement.textContent).toContain('Invalid profile data');
+    expect(fixture.nativeElement.textContent).toContain('Age is not supported.');
+
+    const fullName = fixture.nativeElement.querySelector('#profile-fullName') as HTMLInputElement;
+    expect(fullName.value).toBe('Jane Smith');
+  });
+
+  it('renders the saved address list with details and a Default badge', () => {
+    harness.setProfile({
+      ...defaultProfile,
+      addresses: [
+        { id: 1, street: '10 Talaat Harb', city: 'Cairo', buildingNumber: '12', floor: null, isDefault: true },
+        { id: 2, street: '5 Nile', city: 'Giza', buildingNumber: '8', floor: '2', isDefault: false },
+      ],
+    });
+    createPage();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('10 Talaat Harb');
+    expect(text).toContain('Building 12');
+    expect(text).toContain('5 Nile');
+    expect(text).toContain('Floor 2');
+    expect(text).toContain('Giza');
+    expect(text).toContain('Default');
+  });
+
+  it('shows an empty state with an add action when there are no addresses', () => {
+    createPage();
+
+    expect(fixture.nativeElement.textContent).toContain('No saved addresses');
+    expect(buttonWithText('Add address')).toBeTruthy();
+  });
+
+  it('opens the shared address form modal for the add address action', () => {
+    createPage();
+
+    buttonWithText('Add address').click();
+
+    expect(dialog.openModal).toHaveBeenCalledWith(
+      AddressFormModalComponent,
+      expect.objectContaining({ ariaLabel: 'Add delivery address' }),
+    );
+  });
+
+  it('sets an address as default via the store', () => {
+    harness.setProfile({
+      ...defaultProfile,
+      addresses: [
+        { id: 1, street: '10 Talaat Harb', city: 'Cairo', buildingNumber: '12', floor: null, isDefault: true },
+        { id: 2, street: '5 Nile', city: 'Giza', buildingNumber: '8', floor: '2', isDefault: false },
+      ],
+    });
+    createPage();
+
+    buttonWithText('Set as default').click();
+
+    expect(harness.store.setDefaultAddress).toHaveBeenCalledWith(2);
+  });
+
+  it('removes an address only after confirmation', async () => {
+    harness.setProfile({
+      ...defaultProfile,
+      addresses: [{ id: 2, street: '5 Nile', city: 'Giza', buildingNumber: '8', floor: null, isDefault: false }],
+    });
+    createPage();
+
+    const closed = new Subject<boolean>();
+    dialog.openSheet.mockReturnValue({ closed: closed.asObservable() });
+
+    buttonWithText('Remove').click();
+    expect(dialog.openSheet).toHaveBeenCalledWith(
+      RemoveAddressDialogComponent,
+      expect.objectContaining({ ariaLabel: 'Remove address confirmation' }),
+    );
+
+    closed.next(true);
+    closed.complete();
+    await fixture.whenStable();
+
+    expect(harness.store.removeAddress).toHaveBeenCalledWith(2);
+  });
+
+  it('keeps the address when removal is dismissed', async () => {
+    harness.setProfile({
+      ...defaultProfile,
+      addresses: [{ id: 2, street: '5 Nile', city: 'Giza', buildingNumber: '8', floor: null, isDefault: false }],
+    });
+    createPage();
+
+    const closed = new Subject<boolean>();
+    dialog.openSheet.mockReturnValue({ closed: closed.asObservable() });
+
+    buttonWithText('Remove').click();
+
+    closed.next(false);
+    closed.complete();
+    await fixture.whenStable();
+
+    expect(harness.store.removeAddress).not.toHaveBeenCalled();
   });
 });
+
+function createProfileHarness(initial: ProfileResponse) {
+  const profile = signal<ProfileResponse>(initial);
+
+  const store = {
+    profile: profile.asReadonly(),
+    updateProfile: vi.fn().mockResolvedValue(initial),
+    setDefaultAddress: vi.fn().mockResolvedValue(undefined),
+    removeAddress: vi.fn().mockResolvedValue(undefined),
+  };
+
+  return {
+    store,
+    setProfile: (value: ProfileResponse) => profile.set(value),
+  };
+}

@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 
+import { AddressResponse } from '@talabat/api-customer';
 import { ButtonComponent, DialogService } from '@talabat/shared-ui';
 
+import { AddressFormModalComponent } from '../../../ui/address-form-modal.component';
 import { CheckoutStore } from '../checkout.store';
 import { AddressSelectorComponent } from '../components/address-selector.component';
 import { CheckoutSummaryComponent } from '../components/checkout-summary.component';
-import { AddressFormModalComponent } from '../components/address-form-modal.component';
 
 @Component({
   selector: 'tal-checkout-page',
@@ -90,9 +91,17 @@ export class CheckoutPage {
   }
 
   protected addAddress(): void {
-    this.dialog.openModal(AddressFormModalComponent, {
-      ariaLabel: 'Add delivery address',
-      maxWidth: '32rem',
+    const ref = this.dialog.openModal<AddressResponse, void, AddressFormModalComponent>(
+      AddressFormModalComponent,
+      {
+        ariaLabel: 'Add delivery address',
+        maxWidth: '32rem',
+      },
+    );
+    ref.closed.subscribe((result) => {
+      if (result) {
+        this.store.selectAddress(result.id);
+      }
     });
   }
 }

@@ -1,7 +1,11 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of, Subject, throwError } from 'rxjs';
-import { CustomerApiService, ProfileResponse } from '@talabat/api-customer';
+import {
+  AddressesApiService,
+  CustomerApiService,
+  ProfileResponse,
+} from '@talabat/api-customer';
 import { AppError, AppErrorCode } from '@talabat/core-http';
 import { AuthStore } from '@talabat/core-auth';
 
@@ -9,7 +13,16 @@ import { ProfileStore } from './profile.store';
 
 describe('ProfileStore', () => {
   let store: ProfileStore;
-  let api: { getProfile: ReturnType<typeof vi.fn>; createProfile: ReturnType<typeof vi.fn> };
+  let api: {
+    getProfile: ReturnType<typeof vi.fn>;
+    createProfile: ReturnType<typeof vi.fn>;
+    updateProfile: ReturnType<typeof vi.fn>;
+  };
+  let addressesApi: {
+    addAddress: ReturnType<typeof vi.fn>;
+    setDefaultAddress: ReturnType<typeof vi.fn>;
+    removeAddress: ReturnType<typeof vi.fn>;
+  };
   let userSignal: ReturnType<typeof signal<{ subject: string; displayName: string | null; readonly roles: readonly string[] } | null>>;
   let isAuthenticatedSignal: ReturnType<typeof signal<boolean>>;
 
@@ -27,6 +40,12 @@ describe('ProfileStore', () => {
     api = {
       getProfile: vi.fn(),
       createProfile: vi.fn(),
+      updateProfile: vi.fn(),
+    };
+    addressesApi = {
+      addAddress: vi.fn(),
+      setDefaultAddress: vi.fn(),
+      removeAddress: vi.fn(),
     };
     userSignal = signal({ subject, displayName: 'Jane', roles: [] as string[] });
     isAuthenticatedSignal = signal(true);
@@ -35,6 +54,7 @@ describe('ProfileStore', () => {
       providers: [
         ProfileStore,
         { provide: CustomerApiService, useValue: api },
+        { provide: AddressesApiService, useValue: addressesApi },
         {
           provide: AuthStore,
           useValue: {
@@ -204,5 +224,172 @@ describe('ProfileStore', () => {
     expect(store.state()).toBe('error');
     expect(store.canRetry()).toBe(true);
     expect(store.hasProfile()).toBe(false);
+  });
+
+  describe('mutations', () => {
+    const loaded = async (): Promise<void> => {
+      api.getProfile.mockReturnValue(of(profile));
+      await store.ensureLoaded();
+      expect(store.state()).toBe('loaded');
+    };
+
+    it('updateProfile replaces state from the response on success', async () => {
+      await loaded();
+      const updated = { ...profile, fullName: 'Jane Updated' };
+      api.updateProfile.mockReturnValue(of(updated));
+
+      const result = await store.updateProfile({ fullName: 'Jane Updated', age: 28, phoneNumber: null });
+
+      expect(result).toEqual(updated);
+      expect(store.profile()).toEqual(updated);
+      expect(store.state()).toBe('loaded');
+      expect(store.error()).toBeNull();
+    });
+
+    it('updateProfile propagates a server error and keeps prior state', async () => {
+      await loaded();
+      const error: AppError = {
+        status: 400,
+        code: AppErrorCode.InvalidCustomerProfile,
+        title: 'Invalid profile',
+        detail: 'Age must be positive.',
+        isNetworkError: false,
+      };
+      api.updateProfile.mockReturnValue(throwError(() => error));
+
+      await expect(
+        store.updateProfile({ fullName: '', age: -1, phoneNumber: null }),
+      ).rejects.toEqual(error);
+      expect(store.profile()).toEqual(profile);
+      expect(store.state()).toBe('loaded');
+    });
+
+    it('addAddress reloads the authoritative profile after creation', async () => {
+      await loaded();
+      const created = { id: 7, street: '10 Talaat Harb', city: 'Cairo', buildingNumber: '12', floor: null, isDefault: true };
+      addressesApi.addAddress.mockReturnValue(of(created));
+      const withAddress = {
+        ...profile,
+        addresses: [{ id: 7, street: '10 Talaat Harb', city: 'Cairo', buildingNumber: '12', floor: null, isDefault: true }],
+      };
+      api.getProfile.mockReturnValue(of(withAddress));
+
+      const result = await store.addAddress({
+        street: '10 Talaat Harb',
+        city: 'Cairo',
+        buildingNumber: '12',
+        floor: null,
+        makeDefault: false,
+      });
+
+      expect(result).toEqual(created);
+      expect(api.getProfile).toHaveBeenCalledTimes(2);
+      expect(store.profile()?.addresses).toHaveLength(1);
+      expect(store.state()).toBe('loaded');
+    });
+
+    it('addAddress propagates a server error without mutating state', async () => {
+      await loaded();
+      const error: AppError = {
+        status: 400,
+        code: AppErrorCode.Unknown,
+        title: 'Invalid address',
+        isNetworkError: false,
+      };
+      addressesApi.addAddress.mockReturnValue(throwError(() => error));
+
+      await expect(
+        store.addAddress({ street: 'X', city: 'Y', buildingNumber: '1', floor: null, makeDefault: false }),
+      ).rejects.toEqual(error);
+      expect(store.profile()).toEqual(profile);
+      expect(store.state()).toBe('loaded');
+    });
+
+    it('setDefaultAddress replaces state directly from the response', async () => {
+      await loaded();
+      const withDefault = {
+        ...profile,
+        addresses: [
+          { id: 1, street: 'A', city: 'Cairo', buildingNumber: '1', floor: null, isDefault: false },
+          { id: 2, street: 'B', city: 'Giza', buildingNumber: '2', floor: null, isDefault: true },
+        ],
+      };
+      addressesApi.setDefaultAddress.mockReturnValue(of(withDefault));
+
+      await store.setDefaultAddress(2);
+
+      expect(addressesApi.setDefaultAddress).toHaveBeenCalledWith({ addressId: 2 });
+      expect(api.getProfile).toHaveBeenCalledTimes(1);
+      expect(store.profile()).toEqual(withDefault);
+      expect(store.profile()?.addresses.find((a) => a.isDefault)?.id).toBe(2);
+      expect(store.state()).toBe('loaded');
+    });
+
+    it('setDefaultAddress propagates a server error', async () => {
+      await loaded();
+      const error: AppError = {
+        status: 500,
+        code: AppErrorCode.Unknown,
+        title: 'Something went wrong',
+        isNetworkError: false,
+      };
+      addressesApi.setDefaultAddress.mockReturnValue(throwError(() => error));
+
+      await expect(store.setDefaultAddress(2)).rejects.toEqual(error);
+      expect(store.profile()).toEqual(profile);
+    });
+
+    it('removeAddress reloads the authoritative profile after deletion', async () => {
+      await loaded();
+      const withAddress = {
+        ...profile,
+        addresses: [{ id: 7, street: '10 Talaat Harb', city: 'Cairo', buildingNumber: '12', floor: null, isDefault: true }],
+      };
+      const created = withAddress.addresses[0];
+      addressesApi.addAddress.mockReturnValue(of(created));
+      api.getProfile.mockReturnValue(of(withAddress));
+      await store.addAddress({
+        street: '10 Talaat Harb',
+        city: 'Cairo',
+        buildingNumber: '12',
+        floor: null,
+        makeDefault: false,
+      });
+      addressesApi.removeAddress.mockReturnValue(of(undefined));
+      api.getProfile.mockReturnValue(of(profile));
+
+      await store.removeAddress(7);
+
+      expect(addressesApi.removeAddress).toHaveBeenCalledWith({ addressId: 7 });
+      expect(api.getProfile).toHaveBeenCalledTimes(3);
+      expect(store.profile()).toEqual(profile);
+      expect(store.state()).toBe('loaded');
+    });
+
+    it('removeAddress propagates a server error without mutating state', async () => {
+      await loaded();
+      const error: AppError = {
+        status: 404,
+        code: AppErrorCode.Unknown,
+        title: 'Address not found',
+        isNetworkError: false,
+      };
+      addressesApi.removeAddress.mockReturnValue(throwError(() => error));
+
+      await expect(store.removeAddress(7)).rejects.toEqual(error);
+      expect(store.profile()).toEqual(profile);
+      expect(store.state()).toBe('loaded');
+    });
+
+    it('rejects mutations when the profile is not loaded', async () => {
+      await expect(store.updateProfile({ fullName: 'X', age: 1, phoneNumber: null })).rejects.toThrow(
+        'require a loaded profile',
+      );
+      await expect(
+        store.addAddress({ street: 'X', city: 'Y', buildingNumber: '1', floor: null, makeDefault: false }),
+      ).rejects.toThrow('require a loaded profile');
+      await expect(store.setDefaultAddress(1)).rejects.toThrow('require a loaded profile');
+      await expect(store.removeAddress(1)).rejects.toThrow('require a loaded profile');
+    });
   });
 });

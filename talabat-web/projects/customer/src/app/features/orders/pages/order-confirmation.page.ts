@@ -15,7 +15,7 @@ type OrderViewState = 'loading' | 'loaded' | 'error';
   template: `
     <div class="mx-auto w-full max-w-2xl">
       <h1 class="font-display text-[1.75rem] leading-[2.125rem] font-bold text-food-ink">
-        Order Confirmation
+        Order Details
       </h1>
 
       @switch (viewState()) {
@@ -99,6 +99,12 @@ type OrderViewState = 'loading' | 'loaded' | 'error';
             </section>
 
             <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between">
+              <a
+                routerLink="/orders"
+                class="tal-button tal-button--secondary no-underline"
+              >
+                Back to orders
+              </a>
               <a
                 routerLink="/restaurants"
                 class="tal-button tal-button--secondary no-underline"

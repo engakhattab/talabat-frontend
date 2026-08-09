@@ -1,24 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DialogRef } from '@angular/cdk/dialog';
 import { signal } from '@angular/core';
-import { of, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 
-import { AddressesApiService, ProfileResponse } from '@talabat/api-customer';
+import { AddressResponse, ProfileResponse } from '@talabat/api-customer';
 import { AppError, AppErrorCode } from '@talabat/core-http';
 
-import { ProfileStore } from '../../../core/profile/profile.store';
-import { CheckoutStore } from '../checkout.store';
+import { ProfileStore } from '../core/profile/profile.store';
 import { AddressFormModalComponent } from './address-form-modal.component';
 
 describe('AddressFormModalComponent', () => {
   let fixture: ComponentFixture<AddressFormModalComponent>;
   let component: AddressFormModalComponent;
-  let api: { addAddress: ReturnType<typeof vi.fn> };
   let profileStore: {
-    profile: ReturnType<typeof signal<ProfileResponse | null>>;
-    refreshAfterCreation: ReturnType<typeof vi.fn>;
+    addAddress: ReturnType<typeof vi.fn>;
   };
-  let checkoutStore: { selectAddress: ReturnType<typeof vi.fn> };
   let dialogRef: { close: ReturnType<typeof vi.fn> };
 
   const profile: ProfileResponse = {
@@ -30,27 +26,20 @@ describe('AddressFormModalComponent', () => {
   };
 
   beforeEach(async () => {
-    api = { addAddress: vi.fn() };
-    profileStore = {
-      profile: signal(profile),
-      refreshAfterCreation: vi.fn(),
-    };
-    checkoutStore = { selectAddress: vi.fn() };
+    profileStore = { addAddress: vi.fn() };
     dialogRef = { close: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [AddressFormModalComponent],
       providers: [
         { provide: DialogRef, useValue: dialogRef },
-        { provide: AddressesApiService, useValue: api },
         {
           provide: ProfileStore,
           useValue: {
-            profile: profileStore.profile.asReadonly(),
-            refreshAfterCreation: profileStore.refreshAfterCreation,
+            profile: signal(profile).asReadonly(),
+            addAddress: profileStore.addAddress,
           },
         },
-        { provide: CheckoutStore, useValue: checkoutStore },
       ],
     }).compileComponents();
 
@@ -84,12 +73,18 @@ describe('AddressFormModalComponent', () => {
     expect(text).toContain('Street is required.');
     expect(text).toContain('Building number is required.');
     expect(text).toContain('City is required.');
-    expect(api.addAddress).not.toHaveBeenCalled();
+    expect(profileStore.addAddress).not.toHaveBeenCalled();
   });
 
   it('submits an AddAddressRequest with trimmed values and a null floor when blank', () => {
-    api.addAddress.mockReturnValue(of({ id: 5, street: '10 Talaat Harb', city: 'Cairo', buildingNumber: '12', floor: null, isDefault: false }));
-    profileStore.refreshAfterCreation.mockResolvedValue({ kind: 'loaded', profile });
+    profileStore.addAddress.mockResolvedValue({
+      id: 5,
+      street: '10 Talaat Harb',
+      city: 'Cairo',
+      buildingNumber: '12',
+      floor: null,
+      isDefault: false,
+    });
 
     fill('street', '10 Talaat Harb');
     fill('buildingNumber', '12');
@@ -99,19 +94,24 @@ describe('AddressFormModalComponent', () => {
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     fixture.detectChanges();
 
-    expect(api.addAddress).toHaveBeenCalledWith({
-      addAddressRequest: {
-        street: '10 Talaat Harb',
-        city: 'Cairo',
-        buildingNumber: '12',
-        floor: null,
-        makeDefault: false,
-      },
+    expect(profileStore.addAddress).toHaveBeenCalledWith({
+      street: '10 Talaat Harb',
+      city: 'Cairo',
+      buildingNumber: '12',
+      floor: null,
+      makeDefault: false,
     });
   });
 
   it('sends the floor and makeDefault when provided', () => {
-    api.addAddress.mockReturnValue(of({ id: 5, street: '5 Nile', city: 'Giza', buildingNumber: '8', floor: '2', isDefault: true }));
+    profileStore.addAddress.mockResolvedValue({
+      id: 5,
+      street: '5 Nile',
+      city: 'Giza',
+      buildingNumber: '8',
+      floor: '2',
+      isDefault: true,
+    });
 
     fill('street', '5 Nile');
     fill('buildingNumber', '8');
@@ -126,21 +126,25 @@ describe('AddressFormModalComponent', () => {
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     fixture.detectChanges();
 
-    expect(api.addAddress).toHaveBeenCalledWith({
-      addAddressRequest: {
-        street: '5 Nile',
-        city: 'Giza',
-        buildingNumber: '8',
-        floor: '2',
-        makeDefault: true,
-      },
+    expect(profileStore.addAddress).toHaveBeenCalledWith({
+      street: '5 Nile',
+      city: 'Giza',
+      buildingNumber: '8',
+      floor: '2',
+      makeDefault: true,
     });
   });
 
-  it('refreshes the profile, auto-selects the new address, and closes on success', async () => {
-    const created = { id: 7, street: '10 Talaat Harb', city: 'Cairo', buildingNumber: '12', floor: null, isDefault: true };
-    api.addAddress.mockReturnValue(of(created));
-    profileStore.refreshAfterCreation.mockResolvedValue({ kind: 'loaded', profile });
+  it('closes the dialog with the created AddressResponse on success', async () => {
+    const created: AddressResponse = {
+      id: 7,
+      street: '10 Talaat Harb',
+      city: 'Cairo',
+      buildingNumber: '12',
+      floor: null,
+      isDefault: true,
+    };
+    profileStore.addAddress.mockResolvedValue(created);
 
     fill('street', '10 Talaat Harb');
     fill('buildingNumber', '12');
@@ -153,9 +157,19 @@ describe('AddressFormModalComponent', () => {
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(profileStore.refreshAfterCreation).toHaveBeenCalledTimes(1);
-    expect(checkoutStore.selectAddress).toHaveBeenCalledWith(7);
+    expect(profileStore.addAddress).toHaveBeenCalledTimes(1);
+    expect(dialogRef.close).toHaveBeenCalledWith(created);
+  });
+
+  it('closes with undefined on cancel', () => {
+    const buttons = fixture.nativeElement.querySelectorAll('tal-button');
+    const cancelButton = [...buttons].find((b: HTMLElement) =>
+      b.textContent?.includes('Cancel'),
+    ) as HTMLElement;
+    (cancelButton.querySelector('button') as HTMLButtonElement).click();
+
     expect(dialogRef.close).toHaveBeenCalledTimes(1);
+    expect(dialogRef.close).toHaveBeenCalledWith();
   });
 
   it('preserves and renders a server error without closing', async () => {
@@ -166,7 +180,7 @@ describe('AddressFormModalComponent', () => {
       detail: 'City is not supported.',
       isNetworkError: false,
     };
-    api.addAddress.mockReturnValue(throwError(() => error));
+    profileStore.addAddress.mockRejectedValue(error);
 
     fill('street', '10 Talaat Harb');
     fill('buildingNumber', '12');
@@ -184,12 +198,11 @@ describe('AddressFormModalComponent', () => {
   });
 
   it('ignores submission while busy', async () => {
-    api.addAddress.mockReturnValue(
+    profileStore.addAddress.mockReturnValue(
       new Promise(() => {
         /* never resolves */
       }),
     );
-    profileStore.refreshAfterCreation.mockResolvedValue({ kind: 'loaded', profile });
 
     fill('street', '10 Talaat Harb');
     fill('buildingNumber', '12');
@@ -201,6 +214,6 @@ describe('AddressFormModalComponent', () => {
     form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     fixture.detectChanges();
 
-    expect(api.addAddress).toHaveBeenCalledTimes(1);
+    expect(profileStore.addAddress).toHaveBeenCalledTimes(1);
   });
 });

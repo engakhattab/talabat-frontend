@@ -66,9 +66,13 @@ export class CheckoutStore {
       null
     );
   });
-  readonly selectedAddressId = computed(
-    () => this.overrideAddressIdState() ?? this.defaultAddressId(),
-  );
+  readonly selectedAddressId = computed(() => {
+    const overrideId = this.overrideAddressIdState();
+    if (overrideId !== null && this.addresses().some((address) => address.id === overrideId)) {
+      return overrideId;
+    }
+    return this.defaultAddressId();
+  });
   readonly selectedAddress = computed(() => {
     const id = this.selectedAddressId();
     if (id === null) return null;

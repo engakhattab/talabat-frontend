@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { of } from 'rxjs';
 
 import { AddressDto, CartLineItemDto } from '@talabat/api-customer';
 import { DialogService } from '@talabat/shared-ui';
@@ -11,6 +12,7 @@ import { CheckoutPage } from './checkout.page';
 describe('CheckoutPage', () => {
   let fixture: ComponentFixture<CheckoutPage>;
   let submitOrder: ReturnType<typeof vi.fn>;
+  let selectAddress: ReturnType<typeof vi.fn>;
   let dialog: { openModal: ReturnType<typeof vi.fn> };
 
   const money = (amount: number) => ({ amount, currency: 'EGP' });
@@ -30,7 +32,8 @@ describe('CheckoutPage', () => {
     noticeTitle?: string | null;
   } = {}): ComponentFixture<CheckoutPage> => {
     submitOrder = vi.fn();
-    dialog = { openModal: vi.fn() };
+    selectAddress = vi.fn();
+    dialog = { openModal: vi.fn(() => ({ closed: of(undefined) })) };
 
     const isSubmitting = signal(overrides.isSubmitting ?? false);
     const canSubmit = signal(overrides.canSubmit ?? true);
@@ -52,7 +55,7 @@ describe('CheckoutPage', () => {
             addresses: signal(addresses).asReadonly(),
             selectedAddressId: signal(1).asReadonly(),
             submitOrder,
-            selectAddress: vi.fn(),
+            selectAddress,
           },
         },
         {
@@ -147,6 +150,40 @@ describe('CheckoutPage', () => {
     (addButton.querySelector('button') as HTMLButtonElement).click();
 
     expect(dialog.openModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('selects the created address when the address dialog closes with a result', () => {
+    const created = {
+      id: 7,
+      street: '10 Talaat Harb',
+      city: 'Cairo',
+      buildingNumber: '12',
+      floor: null,
+      isDefault: true,
+    };
+    fixture = createFixture();
+    dialog.openModal.mockReturnValue({ closed: of(created) });
+
+    const buttons = fixture.nativeElement.querySelectorAll('tal-button');
+    const addButton = [...buttons].find((b: HTMLElement) =>
+      b.textContent?.includes('Add Delivery Address'),
+    ) as HTMLElement;
+    (addButton.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(selectAddress).toHaveBeenCalledWith(7);
+  });
+
+  it('does not select an address when the dialog closes without a result', () => {
+    fixture = createFixture();
+
+    const buttons = fixture.nativeElement.querySelectorAll('tal-button');
+    const addButton = [...buttons].find((b: HTMLElement) =>
+      b.textContent?.includes('Add Delivery Address'),
+    ) as HTMLElement;
+    (addButton.querySelector('button') as HTMLButtonElement).click();
+
+    expect(selectAddress).not.toHaveBeenCalled();
   });
 
   it('is responsive with a single-column layout', () => {

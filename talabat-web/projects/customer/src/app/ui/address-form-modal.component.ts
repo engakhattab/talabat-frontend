@@ -1,14 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { DialogRef } from '@angular/cdk/dialog';
 import { form, required, validate, FormField, FieldTree } from '@angular/forms/signals';
-import { firstValueFrom } from 'rxjs';
 
-import { AddressesApiService } from '@talabat/api-customer';
+import { AddressResponse } from '@talabat/api-customer';
 import { AppError } from '@talabat/core-http';
 import { ButtonComponent } from '@talabat/shared-ui';
 
-import { ProfileStore } from '../../../core/profile/profile.store';
-import { CheckoutStore } from '../checkout.store';
+import { ProfileStore } from '../core/profile/profile.store';
 
 interface AddressFormModel {
   street: string;
@@ -136,10 +134,8 @@ interface AddressFormModel {
   `,
 })
 export class AddressFormModalComponent {
-  private readonly dialogRef = inject<DialogRef<void>>(DialogRef);
-  private readonly addressesApi = inject(AddressesApiService);
+  private readonly dialogRef = inject<DialogRef<AddressResponse>>(DialogRef);
   private readonly profileStore = inject(ProfileStore);
-  private readonly checkoutStore = inject(CheckoutStore);
 
   protected readonly model = signal<AddressFormModel>({
     street: '',
@@ -207,12 +203,8 @@ export class AddressFormModalComponent {
     this.busyState.set(true);
     this.serverErrorState.set(null);
     try {
-      const created = await firstValueFrom(
-        this.addressesApi.addAddress({ addAddressRequest: request }),
-      );
-      await this.profileStore.refreshAfterCreation();
-      this.checkoutStore.selectAddress(created.id);
-      this.dialogRef.close();
+      const created = await this.profileStore.addAddress(request);
+      this.dialogRef.close(created);
     } catch (error) {
       this.serverErrorState.set(error as AppError);
     } finally {

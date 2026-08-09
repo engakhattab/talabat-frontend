@@ -1,5 +1,12 @@
 import { computed, Injectable, inject, signal } from '@angular/core';
-import { CustomerApiService, ProfileResponse } from '@talabat/api-customer';
+import {
+  AddAddressRequest,
+  AddressResponse,
+  AddressesApiService,
+  CustomerApiService,
+  ProfileResponse,
+  UpdateProfileRequest,
+} from '@talabat/api-customer';
 import { AppError, AppErrorCode } from '@talabat/core-http';
 import { AuthStore } from '@talabat/core-auth';
 import { firstValueFrom } from 'rxjs';
@@ -14,6 +21,7 @@ export type ProfileProbeResult =
 @Injectable({ providedIn: 'root' })
 export class ProfileStore {
   private readonly customerApi = inject(CustomerApiService);
+  private readonly addressesApi = inject(AddressesApiService);
   private readonly auth = inject(AuthStore);
 
   private readonly stateState = signal<ProfileLoadState>('idle');
@@ -95,6 +103,38 @@ export class ProfileStore {
     return this.runProbe();
   }
 
+  async updateProfile(request: UpdateProfileRequest): Promise<ProfileResponse> {
+    this.ensureLoadedProfile();
+    const profile = await firstValueFrom(
+      this.customerApi.updateProfile({ updateProfileRequest: request }),
+    );
+    this.applyProfile(profile);
+    return profile;
+  }
+
+  async addAddress(request: AddAddressRequest): Promise<AddressResponse> {
+    this.ensureLoadedProfile();
+    const created = await firstValueFrom(
+      this.addressesApi.addAddress({ addAddressRequest: request }),
+    );
+    await this.reloadProfile();
+    return created;
+  }
+
+  async setDefaultAddress(addressId: number): Promise<void> {
+    this.ensureLoadedProfile();
+    const profile = await firstValueFrom(
+      this.addressesApi.setDefaultAddress({ addressId }),
+    );
+    this.applyProfile(profile);
+  }
+
+  async removeAddress(addressId: number): Promise<void> {
+    this.ensureLoadedProfile();
+    await firstValueFrom(this.addressesApi.removeAddress({ addressId }));
+    await this.reloadProfile();
+  }
+
   private resetForSubjectChange(subject: string): void {
     this.stateState.set('idle');
     this.profileState.set(null);
@@ -158,5 +198,23 @@ export class ProfileStore {
     this.errorState.set(error);
     this.stateState.set('error');
     return { kind: 'error', error };
+  }
+
+  private ensureLoadedProfile(): void {
+    if (this.state() !== 'loaded' || this.profileState() === null) {
+      throw new Error('ProfileStore mutations require a loaded profile.');
+    }
+  }
+
+  private applyProfile(profile: ProfileResponse): void {
+    this.profileState.set(profile);
+    this.stateState.set('loaded');
+    this.errorState.set(null);
+  }
+
+  private async reloadProfile(): Promise<ProfileResponse> {
+    const profile = await firstValueFrom(this.customerApi.getProfile());
+    this.applyProfile(profile);
+    return profile;
   }
 }

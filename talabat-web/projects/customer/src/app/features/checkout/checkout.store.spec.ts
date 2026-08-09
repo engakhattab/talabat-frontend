@@ -97,6 +97,26 @@ describe('CheckoutStore', () => {
     expect(store.selectedAddressId()).toBe(1);
   });
 
+  it('falls back to the default address when the selected override is removed', () => {
+    store.selectAddress(1);
+    expect(store.selectedAddressId()).toBe(1);
+
+    profileSignal.set(profile([address({ id: 2, isDefault: true })]));
+
+    expect(store.selectedAddressId()).toBe(2);
+    expect(store.selectedAddress()?.id).toBe(2);
+  });
+
+  it('retains a valid override that still exists in the profile', () => {
+    store.selectAddress(1);
+    expect(store.selectedAddressId()).toBe(1);
+
+    profileSignal.set(profile([address({ id: 1 }), address({ id: 3, isDefault: true })]));
+
+    expect(store.selectedAddressId()).toBe(1);
+    expect(store.selectedAddress()?.id).toBe(1);
+  });
+
   it('rejects selection while a submission is in flight', async () => {
     const pending = new Subject<{ orderId: number }>();
     checkoutApi.checkout.mockReturnValue(pending);

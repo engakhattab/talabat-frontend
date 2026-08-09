@@ -1,0 +1,41 @@
+Implement the approved Phase 10 specification, plan, and tasks.
+
+Act as a senior Angular engineer, not a mechanical task executor.
+
+Before changing code for each task, inspect the existing implementation and reuse working Phase 7–9 code whenever it is architecturally sound.
+
+If the actual repository contradicts an implementation assumption in the plan:
+
+1. stop that specific approach,
+2. inspect the relevant code/contracts,
+3. choose the smallest correct adjustment,
+4. document the deviation,
+5. continue without expanding scope.
+
+Do not redesign working Phase 9 behavior.
+
+Do not edit generated API code.
+
+Do not duplicate address forms or order-detail implementations.
+
+Do not introduce abstractions that are not justified by Phase 10.
+
+Preserve the existing FoodDash visual language.
+
+Keep verification focused on code changed by Phase 10 rather than repeatedly running expensive unrelated test suites after every small edit.
+
+At completion, report:
+
+- what was implemented
+- architecture decisions actually used
+- existing code reused
+- important deviations from the original plan and why
+- routes added/changed
+- profile behavior
+- address behavior
+- orders behavior
+- relevant error states handled
+- verification performed
+- remaining limitations caused by the backend contract
+
+Stop after Phase 10. Do not begin Phase 11.{\rtf1}
