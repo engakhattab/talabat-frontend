@@ -168,12 +168,15 @@ describe('CheckoutStore', () => {
     await promise;
   });
 
-  it('on HTTP 201 resets the cart, records orderId, and navigates to the order', async () => {
+  it('on HTTP 201 resets the cart, clears transient address override, records orderId, and navigates to the order', async () => {
+    store.selectAddress(1);
+    expect(store.selectedAddressId()).toBe(1);
     checkoutApi.checkout.mockReturnValue(of({ orderId: 1042 }));
 
     await store.submitOrder();
 
     expect(store.orderId()).toBe(1042);
+    expect(store.selectedAddressId()).toBe(2);
     expect(cartStore.applyEmptyCart).toHaveBeenCalledTimes(1);
     expect(router.navigateByUrl).toHaveBeenCalledWith('/orders/1042');
     expect(store.isSubmitting()).toBe(false);

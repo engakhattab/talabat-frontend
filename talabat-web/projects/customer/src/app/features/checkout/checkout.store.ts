@@ -120,6 +120,9 @@ export class CheckoutStore {
       );
 
       this.orderIdState.set(response.orderId);
+      this.overrideAddressIdState.set(null);
+      this.noticeState.set(null);
+      this.unavailableItemsState.set([]);
       this.cartStore.applyEmptyCart();
       await this.router.navigateByUrl(`/orders/${response.orderId}`);
     } catch (error) {
