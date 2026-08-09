@@ -1,6 +1,8 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { AddressesApiService, CustomerApiService } from '@talabat/api-customer';
 import { AuthStore } from '@talabat/core-auth';
 
 import { HeaderComponent } from './header.component';
@@ -29,6 +31,14 @@ describe('HeaderComponent', () => {
             signIn: vi.fn().mockResolvedValue(undefined),
             signOut: vi.fn().mockResolvedValue(undefined),
           },
+        },
+        {
+          provide: CustomerApiService,
+          useValue: { getProfile: vi.fn().mockReturnValue(of({ fullName: 'Jane Doe' })) },
+        },
+        {
+          provide: AddressesApiService,
+          useValue: {},
         },
         ProfileStore,
       ],

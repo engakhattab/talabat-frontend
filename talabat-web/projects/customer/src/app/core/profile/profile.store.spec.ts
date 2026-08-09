@@ -38,7 +38,7 @@ describe('ProfileStore', () => {
 
   beforeEach(() => {
     api = {
-      getProfile: vi.fn(),
+      getProfile: vi.fn().mockReturnValue(of(profile)),
       createProfile: vi.fn(),
       updateProfile: vi.fn(),
     };
@@ -47,7 +47,11 @@ describe('ProfileStore', () => {
       setDefaultAddress: vi.fn(),
       removeAddress: vi.fn(),
     };
-    userSignal = signal({ subject, displayName: 'Jane', roles: [] as string[] });
+    userSignal = signal<{ subject: string; displayName: string | null; readonly roles: readonly string[] } | null>({
+      subject,
+      displayName: 'Jane',
+      roles: [],
+    });
     isAuthenticatedSignal = signal(true);
 
     TestBed.configureTestingModule({
@@ -68,13 +72,47 @@ describe('ProfileStore', () => {
     store = TestBed.inject(ProfileStore);
   });
 
-  it('starts in idle state', () => {
+  it('starts in idle state when unauthenticated', () => {
+    userSignal.set(null);
+    isAuthenticatedSignal.set(false);
+    TestBed.flushEffects();
+
     expect(store.state()).toBe('idle');
     expect(store.profile()).toBeNull();
     expect(store.error()).toBeNull();
     expect(store.hasProfile()).toBe(false);
     expect(store.isMissing()).toBe(false);
     expect(store.canRetry()).toBe(false);
+  });
+
+  it('automatically loads profile when user becomes authenticated', async () => {
+    userSignal.set(null);
+    isAuthenticatedSignal.set(false);
+    TestBed.flushEffects();
+    expect(store.state()).toBe('idle');
+
+    api.getProfile.mockReturnValue(of(profile));
+    userSignal.set({ subject, displayName: 'Jane', roles: [] });
+    isAuthenticatedSignal.set(true);
+    TestBed.flushEffects();
+
+    await vi.waitFor(() => {
+      expect(store.state()).toBe('loaded');
+      expect(store.profile()).toEqual(profile);
+    });
+  });
+
+  it('resets profile state when user signs out', async () => {
+    await vi.waitFor(() => {
+      expect(store.state()).toBe('loaded');
+    });
+
+    userSignal.set(null);
+    isAuthenticatedSignal.set(false);
+    TestBed.flushEffects();
+
+    expect(store.state()).toBe('idle');
+    expect(store.profile()).toBeNull();
   });
 
   it('resolves loaded state on 200 response', async () => {

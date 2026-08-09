@@ -1,4 +1,4 @@
-import { computed, Injectable, inject, signal } from '@angular/core';
+import { computed, effect, Injectable, inject, signal } from '@angular/core';
 import {
   AddAddressRequest,
   AddressResponse,
@@ -39,6 +39,16 @@ export class ProfileStore {
   readonly hasProfile = computed(() => this.state() === 'loaded' && this.profile() !== null);
   readonly isMissing = computed(() => this.state() === 'missing');
   readonly canRetry = computed(() => this.state() === 'error');
+
+  constructor() {
+    effect(() => {
+      if (this.auth.isAuthenticated()) {
+        void this.ensureLoaded();
+      } else {
+        this.reset();
+      }
+    });
+  }
 
   reset(): void {
     this.stateState.set('idle');

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '@talabat/core-auth';
 import { ButtonComponent } from '@talabat/shared-ui';
@@ -64,13 +64,13 @@ export class HeaderComponent {
   private readonly profileStore = inject(ProfileStore);
   private readonly router = inject(Router);
 
-  protected readonly greeting = () => {
+  protected readonly greeting = computed(() => {
     const profile = this.profileStore.profile();
     if (profile?.fullName) return profile.fullName;
     const user = this.auth.user();
     if (user?.displayName) return user.displayName;
     return 'Signed in';
-  };
+  });
 
   protected signIn(): void {
     void this.auth.signIn(this.router.url).catch(() => undefined);
