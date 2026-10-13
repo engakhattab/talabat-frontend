@@ -78,8 +78,16 @@ npm run e2e:preflight
 
 ## Local environment gotchas
 
-- **Node.js and a JDK are not installed on this machine** — nothing here can currently be built, tested, or
-  regenerated. CI specifies Node 24. Do not claim frontend changes work without running them.
+- Toolchain: Node 24 (`C:\Program Files\nodejs`) and OpenJDK 21 (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`).
+  A shell or app started before they were installed may not have them on PATH — prepend those folders if
+  `node`/`java` are not found. Never claim frontend changes work without running them.
+- After `npm ci`, run `npx openapi-generator-cli version` once: it re-downloads the pinned OpenAPI Generator jar
+  (7.11.0) into `node_modules`. Without it, `api:gen`/`api:verify` fail with "no main manifest attribute".
+- npm 11 blocks package install scripts until approved. The five it lists (openapi-generator-cli, @parcel/watcher,
+  esbuild, lmdb, msgpackr-extract) are not needed (donation message / prebuilt binaries exist) — leave them blocked.
+- Full stack locally: the backend repo's `.claude/launch.json` has `identity`, `customer-api` and `customer-web`
+  (this app on http://localhost:4200). Start the backend hosts one at a time — concurrent `dotnet run` builds can
+  lock shared assemblies.
 - Repos were copied from another machine: git reports "dubious ownership"; prefix git with `git -c safe.directory=*`.
 - `.gitignore` ignores `*.log`, `dist/`, `node_modules/`, Playwright `test-results/` and `playwright-report/`.
 - Line endings: the index is LF (`core.autocrlf=true`); never stage with `core.autocrlf=false`.
@@ -93,9 +101,11 @@ npm run e2e:preflight
 
 ## Current status and next work (2026-10-13)
 
-- `master` @ `652c645`. Customer app phases 1–10 are committed; Phase 11 release hardening (`specs/005-release-hardening`)
+- `master` @ `a252e0c`. Customer app phases 1–10 are committed; Phase 11 release hardening (`specs/005-release-hardening`)
   is committed but tasks T036 (manual address acceptance), T038 (runbook finalization) and T039 (ordered release gate)
-  are open, and nothing has been re-verified since the move to this machine.
+  are open.
+- Re-verified on this machine (2026-10-13): 352/352 unit tests, `api:verify`, production build + bundle audit, and a
+  live sign-in → cart → checkout → orders journey against the local backend all pass. Playwright E2E not yet run.
 - The Delivery app is no longer blocked on the backend: applicant status/profile, agent status, Admin approval, and
   pickup data now exist. Plan: `docs/talabat-delivery-frontend-roadmap.md` (start with its Phase 1, app-neutral
   `core-*`; note the constitution's Scope Guard still lists `delivery` as deferred — confirm with the user).
