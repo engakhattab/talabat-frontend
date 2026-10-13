@@ -81,8 +81,8 @@ npm run e2e:preflight
 - Toolchain: Node 24 (`C:\Program Files\nodejs`) and OpenJDK 21 (`C:\Program Files\Microsoft\jdk-21.0.12.101-hotspot`).
   A shell or app started before they were installed may not have them on PATH — prepend those folders if
   `node`/`java` are not found. Never claim frontend changes work without running them.
-- After `npm ci`, run `npx openapi-generator-cli version` once: it re-downloads the pinned OpenAPI Generator jar
-  (7.11.0) into `node_modules`. Without it, `api:gen`/`api:verify` fail with "no main manifest attribute".
+- The pinned OpenAPI Generator jar (7.11.0) lives in `node_modules`; `tools/api-generator.mjs` re-downloads it
+  automatically when missing (e.g. after `npm ci`), so `api:gen`/`api:verify` work on a fresh install.
 - npm 11 blocks package install scripts until approved. The five it lists (openapi-generator-cli, @parcel/watcher,
   esbuild, lmdb, msgpackr-extract) are not needed (donation message / prebuilt binaries exist) — leave them blocked.
 - Full stack locally: the backend repo's `.claude/launch.json` has `identity`, `customer-api` and `customer-web`

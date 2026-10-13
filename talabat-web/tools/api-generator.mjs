@@ -1,5 +1,5 @@
-import { existsSync, lstatSync, rmSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { existsSync, lstatSync, readFileSync, rmSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -9,13 +9,34 @@ export const generatorJar = resolve(generatorRoot, 'target', 'talabat-openapi-ge
 export const generatedSource = resolve(workspaceRoot, 'projects', 'api-customer', 'src');
 export const generatorConfig = resolve(workspaceRoot, 'openapi', 'customer.config.json');
 export const generatorTemplates = resolve(workspaceRoot, 'openapi', 'templates', 'typescript-angular');
-export const cliEntry = resolve(
-  workspaceRoot,
-  'node_modules',
-  '@openapitools',
-  'openapi-generator-cli',
-  'main.js',
-);
+export const cliRoot = resolve(workspaceRoot, 'node_modules', '@openapitools', 'openapi-generator-cli');
+export const cliEntry = resolve(cliRoot, 'main.js');
+export const openApiToolsConfig = resolve(workspaceRoot, 'openapitools.json');
+
+export function pinnedGeneratorVersion(configPath = openApiToolsConfig) {
+  const version = JSON.parse(readFileSync(configPath, 'utf8'))['generator-cli']?.version;
+  if (typeof version !== 'string' || version.length === 0) {
+    throw new Error(`${configPath} must pin generator-cli.version`);
+  }
+  return version;
+}
+
+export function baseGeneratorJarPath(version, root = cliRoot) {
+  return join(root, 'versions', `${version}.jar`);
+}
+
+// The CLI only auto-downloads its pinned base jar when no --custom-generator is passed, and the
+// jar lives inside node_modules, so a fresh `npm ci` (local or CI) leaves it missing and generation
+// fails with "no main manifest attribute". Download it explicitly before generating.
+export function ensureBaseGeneratorJar({ jarPath, exists = existsSync, download }) {
+  if (exists(jarPath)) {
+    return;
+  }
+  download();
+  if (!exists(jarPath)) {
+    throw new Error(`OpenAPI Generator base jar is still missing after download: ${jarPath}`);
+  }
+}
 
 function run(command, args, cwd = workspaceRoot) {
   const result = spawnSync(command, args, { cwd, stdio: 'inherit', shell: false });
@@ -69,6 +90,10 @@ function generateTo(outputDirectory, options = {}) {
   if (!existsSync(cliEntry)) {
     throw new Error('OpenAPI Generator CLI is not installed. Run npm install first.');
   }
+  ensureBaseGeneratorJar({
+    jarPath: baseGeneratorJarPath(pinnedGeneratorVersion()),
+    download: () => run(process.execPath, [cliEntry, 'version']),
+  });
   run(process.execPath, [
     cliEntry,
     `--custom-generator=${generatorJar}`,
