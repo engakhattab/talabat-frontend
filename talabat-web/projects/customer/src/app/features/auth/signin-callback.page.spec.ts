@@ -56,4 +56,34 @@ describe('SigninCallbackPage', () => {
     (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
     expect(auth.signIn).toHaveBeenCalledWith('/restaurants');
   });
+
+  it('never interpolates hostile error, error_description, or state query values', async () => {
+    auth.completeSignInCallback.mockRejectedValue(
+      new Error('error=access_denied&error_description=You are banned&state=attacker-state'),
+    );
+    error.set({ code: 'callback_failed', message: 'Sign-in could not be completed.' });
+
+    fixture = TestBed.createComponent(SigninCallbackPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Sign-in was not completed');
+    expect(text).not.toContain('access_denied');
+    expect(text).not.toContain('You are banned');
+    expect(text).not.toContain('attacker-state');
+  });
+
+  it('shows only safe copy when the callback state is invalid or absent', async () => {
+    auth.completeSignInCallback.mockRejectedValue(new Error('state mismatch — unexpected'));
+    error.set({ code: 'callback_failed', message: 'Sign-in could not be completed.' });
+    fixture = TestBed.createComponent(SigninCallbackPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Sign-in was not completed');
+    expect(fixture.nativeElement.textContent).not.toContain('state mismatch');
+  });
 });

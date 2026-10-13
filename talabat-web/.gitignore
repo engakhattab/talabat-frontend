@@ -43,3 +43,8 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Playwright reports and results (never auth state or credentials)
+/playwright-report/
+/playwright-results/
+/test-results/

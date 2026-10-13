@@ -12,7 +12,11 @@
     "api:gen:customer": "node tools/api-generator.mjs generate-customer",
     "api:gen": "npm run api:copy && npm run api:generator:build && npm run api:gen:customer",
     "api:verify": "node tools/verify-generated-api.mjs",
-    "test:openapi-tools": "node --test tools/copy-openapi.test.mjs"
+    "test:openapi-tools": "npm run api:generator:build && node --test tools/copy-openapi.test.mjs tools/verify-generated-api.test.mjs",
+    "build:customer:production": "ng build customer --configuration production --stats-json && node tools/verify-customer-bundle.mjs",
+    "verify:customer-bundle": "node tools/verify-customer-bundle.mjs",
+    "e2e:preflight": "playwright test --config playwright.config.ts e2e/preflight.spec.ts",
+    "e2e": "playwright test --config playwright.config.ts"
   },
   "private": true,
   "packageManager": "npm@11.16.0",
@@ -32,7 +36,9 @@
     "@angular/build": "^22.1.2",
     "@angular/cli": "^22.1.2",
     "@angular/compiler-cli": "^22.1.0",
+    "@axe-core/playwright": "4.12.1",
     "@openapitools/openapi-generator-cli": "^2.40.1",
+    "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "4.3.3",
     "jsdom": "^28.0.0",
     "ng-packagr": "^22.1.0",

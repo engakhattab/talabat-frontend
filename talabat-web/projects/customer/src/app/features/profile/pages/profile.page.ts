@@ -1,8 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { form, required, validate, FormField, FieldTree } from '@angular/forms/signals';
 import { AddressDto, AddressResponse, UpdateProfileRequest } from '@talabat/api-customer';
-import { AppError } from '@talabat/core-http';
+import { AppError, AppErrorCode } from '@talabat/core-http';
 import {
   ButtonComponent,
   DialogService,
@@ -49,15 +49,12 @@ interface ProfileFormModel {
               </tal-button>
             </div>
 
-            @if (saveError(); as error) {
+            @if (saveErrorMessage(); as message) {
               <div
                 class="mt-4 rounded-food border border-food-error bg-food-tint px-3 py-2"
                 role="alert"
               >
-                <p class="text-sm font-medium text-food-error">{{ error.title }}</p>
-                @if (error.detail) {
-                  <p class="mt-1 text-sm text-food-error">{{ error.detail }}</p>
-                }
+                <p class="text-sm font-medium text-food-error">{{ message }}</p>
               </div>
             }
 
@@ -177,15 +174,12 @@ interface ProfileFormModel {
             <tal-button variant="secondary" (pressed)="addAddress()">Add address</tal-button>
           </div>
 
-          @if (addressError(); as error) {
+          @if (addressErrorMessage(); as message) {
             <div
               class="mt-4 rounded-food border border-food-error bg-food-tint px-3 py-2"
               role="alert"
             >
-              <p class="text-sm font-medium text-food-error">{{ error.title }}</p>
-              @if (error.detail) {
-                <p class="mt-1 text-sm text-food-error">{{ error.detail }}</p>
-              }
+              <p class="text-sm font-medium text-food-error">{{ message }}</p>
             </div>
           }
 
@@ -271,9 +265,26 @@ export class ProfilePage {
   protected readonly isEditing = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly saveError = signal<AppError | null>(null);
+  protected readonly saveErrorMessage = computed(() => this.toUserMessage(this.saveError()));
   protected readonly saveSuccess = signal(false);
   protected readonly addressBusy = signal<number | null>(null);
   protected readonly addressError = signal<AppError | null>(null);
+  protected readonly addressErrorMessage = computed(() => this.toUserMessage(this.addressError()));
+
+  private toUserMessage(error: AppError | null): string | null {
+    if (error === null) return null;
+
+    if (error.isNetworkError) return 'Cannot reach the server. Check your connection and try again.';
+
+    switch (error.code) {
+      case AppErrorCode.InvalidCustomerProfile:
+        return 'Some profile details are invalid. Please review them and try again.';
+      case AppErrorCode.ProfileAlreadyExists:
+        return 'A profile already exists for this account.';
+      default:
+        return 'Something went wrong. Please try again.';
+    }
+  }
 
   protected readonly profileForm: FieldTree<ProfileFormModel> = form(
     this.model,

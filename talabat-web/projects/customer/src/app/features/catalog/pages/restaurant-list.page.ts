@@ -24,10 +24,10 @@ import { RestaurantCardComponent } from '../components/restaurant-card.component
       <div class="grid min-h-56 place-items-center rounded-food-md bg-white shadow-food-sm">
         <tal-spinner label="Loading restaurants" />
       </div>
-    } @else if (restaurantError(); as error) {
+    } @else if (restaurantError()) {
       <tal-error-state
-        [description]="error.detail ?? 'Check your connection and try again.'"
-        [title]="error.title"
+        [description]="restaurantErrorDescription()"
+        [title]="restaurantErrorTitle()"
         (retry)="retryRestaurants()"
       />
     } @else if (restaurants.value(); as response) {
@@ -74,6 +74,18 @@ export class RestaurantListPage {
           isNetworkError: false,
         };
   });
+
+  protected readonly restaurantErrorTitle = computed(() =>
+    this.restaurantError()?.isNetworkError
+      ? 'Cannot reach the server'
+      : 'Restaurants could not be loaded',
+  );
+
+  protected readonly restaurantErrorDescription = computed(() =>
+    this.restaurantError()?.isNetworkError
+      ? 'Check your connection and try again.'
+      : 'Please try again in a moment.',
+  );
 
   protected retryRestaurants(): void {
     this.restaurants.reload();

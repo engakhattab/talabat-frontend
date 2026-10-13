@@ -146,6 +146,23 @@ describe('ProfilePage', () => {
     expect(harness.store.updateProfile).not.toHaveBeenCalled();
   });
 
+  it('associates invalid profile fields with their announced errors', () => {
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+    fill('fullName', '');
+    fill('age', '');
+    submitForm();
+
+    const fullName = fixture.nativeElement.querySelector('#profile-fullName') as HTMLInputElement;
+    const age = fixture.nativeElement.querySelector('#profile-age') as HTMLInputElement;
+    expect(fullName.getAttribute('aria-invalid')).toBe('true');
+    expect(fullName.getAttribute('aria-describedby')).toBe('profile-fullName-error');
+    expect(age.getAttribute('aria-invalid')).toBe('true');
+    expect(age.getAttribute('aria-describedby')).toBe('profile-age-error');
+    expect(fixture.nativeElement.querySelector('#profile-fullName-error')?.getAttribute('role')).toBe('alert');
+  });
+
   it('rejects a whitespace-only full name', () => {
     createPage();
     buttonWithText('Edit profile').click();
@@ -220,10 +237,10 @@ describe('ProfilePage', () => {
     expect(fixture.nativeElement.textContent).toContain('31');
   });
 
-  it('stays in edit mode and shows a server error banner when the update fails', async () => {
+  it('stays in edit mode and shows feature-owned error copy when the update fails', async () => {
     const error: AppError = {
       status: 400,
-      code: AppErrorCode.Unknown,
+      code: AppErrorCode.InvalidCustomerProfile,
       title: 'Invalid profile data',
       detail: 'Age is not supported.',
       isNetworkError: false,
@@ -239,11 +256,87 @@ describe('ProfilePage', () => {
     await flush();
 
     expect(fixture.nativeElement.textContent).toContain('Save changes');
-    expect(fixture.nativeElement.textContent).toContain('Invalid profile data');
-    expect(fixture.nativeElement.textContent).toContain('Age is not supported.');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Some profile details are invalid. Please review them and try again.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Invalid profile data');
+    expect(fixture.nativeElement.textContent).not.toContain('Age is not supported.');
 
     const fullName = fixture.nativeElement.querySelector('#profile-fullName') as HTMLInputElement;
     expect(fullName.value).toBe('Jane Smith');
+  });
+
+  it('shows a network save error without leaking backend detail', async () => {
+    const error: AppError = {
+      status: 0,
+      code: AppErrorCode.Unknown,
+      title: 'Cannot reach the server',
+      detail: 'backend trace xyz-987',
+      isNetworkError: true,
+    };
+    harness.store.updateProfile.mockRejectedValue(error);
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', 'Jane Smith');
+    fill('age', '31');
+    submitForm();
+    await flush();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Cannot reach the server. Check your connection and try again.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('backend trace xyz-987');
+  });
+
+  it('renders generic T017 copy for an unknown ProblemDetails save error without raw text', async () => {
+    const error: AppError = {
+      status: 502,
+      code: AppErrorCode.Unknown,
+      title: 'Gateway blew up correlation 8a1f',
+      detail: 'token super-secret',
+      isNetworkError: false,
+    };
+    harness.store.updateProfile.mockRejectedValue(error);
+    createPage();
+    buttonWithText('Edit profile').click();
+    fixture.detectChanges();
+
+    fill('fullName', 'Jane Smith');
+    fill('age', '31');
+    submitForm();
+    await flush();
+
+    expect(fixture.nativeElement.textContent).toContain('Something went wrong. Please try again.');
+    expect(fixture.nativeElement.textContent).not.toContain('Gateway blew up');
+    expect(fixture.nativeElement.textContent).not.toContain('8a1f');
+    expect(fixture.nativeElement.textContent).not.toContain('token super-secret');
+  });
+
+
+  it('renders a network banner for address operations without leaking details', async () => {
+    const error: AppError = {
+      status: 0,
+      code: AppErrorCode.Unknown,
+      title: 'Cannot reach the server',
+      detail: 'backend trace abc-123',
+      isNetworkError: true,
+    };
+    harness.setProfile({
+      ...defaultProfile,
+      addresses: [{ id: 2, street: '5 Nile', city: 'Giza', buildingNumber: '8', floor: null, isDefault: false }],
+    });
+    harness.store.setDefaultAddress.mockRejectedValue(error);
+    createPage();
+
+    buttonWithText('Set as default').click();
+    await flush();
+
+    expect(fixture.nativeElement.textContent).toContain(
+      'Cannot reach the server. Check your connection and try again.',
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('backend trace abc-123');
   });
 
   it('renders the saved address list with details and a Default badge', () => {

@@ -139,6 +139,28 @@ describe('OrdersPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Order #7');
   });
 
+  it('renders feature-owned copy for a known domain error without raw text', async () => {
+    const domainError: AppError = {
+      status: 409,
+      code: AppErrorCode.RestaurantInactive,
+      title: 'Suspension',
+      detail: 'chain suspended correlation 9f31',
+      isNetworkError: false,
+    };
+    api.getOrders.mockReturnValueOnce(throwError(() => domainError));
+
+    fixture.detectChanges();
+    await vi.waitFor(() => expect(component.ordersError()).toBeDefined());
+    fixture.detectChanges();
+
+    const alert = fixture.nativeElement.querySelector('[role="alert"]') as HTMLElement;
+    expect(alert.textContent).toContain('Your orders could not be loaded');
+    expect(alert.textContent).toContain('Please try again in a moment.');
+    expect(alert.textContent).not.toContain('Suspension');
+    expect(alert.textContent).not.toContain('chain suspended');
+    expect(alert.textContent).not.toContain('9f31');
+  });
+
   it('paginates: shows page context, disables boundaries, and refetches on navigation', async () => {
     api.getOrders.mockReturnValueOnce(of(pageOneResponse));
     api.getOrders.mockReturnValueOnce(of(pageTwoResponse));

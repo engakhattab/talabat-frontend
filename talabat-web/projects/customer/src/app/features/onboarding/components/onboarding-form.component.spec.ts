@@ -44,4 +44,18 @@ describe('OnboardingFormComponent', () => {
     const messages = Array.from(alerts).map((el: unknown) => (el as HTMLElement).textContent);
     expect(messages.some((m) => m?.includes('Invalid profile'))).toBe(true);
   });
+
+  it('associates invalid fields with their announced errors', () => {
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    fixture.detectChanges();
+
+    const fullName = fixture.nativeElement.querySelector('#onboarding-fullName') as HTMLInputElement;
+    const age = fixture.nativeElement.querySelector('#onboarding-age') as HTMLInputElement;
+    expect(fullName.getAttribute('aria-invalid')).toBe('true');
+    expect(fullName.getAttribute('aria-describedby')).toBe('onboarding-fullName-error');
+    expect(age.getAttribute('aria-invalid')).toBe('true');
+    expect(age.getAttribute('aria-describedby')).toBe('onboarding-age-error');
+    expect(fixture.nativeElement.querySelector('#onboarding-fullName-error')?.getAttribute('role')).toBe('alert');
+  });
 });

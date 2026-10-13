@@ -5,11 +5,11 @@ import { fileURLToPath } from 'node:url';
 
 const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const generatorRoot = resolve(workspaceRoot, 'tools', 'talabat-openapi-generator');
-const generatorJar = resolve(generatorRoot, 'target', 'talabat-openapi-generator-1.0.0.jar');
-const generatedSource = resolve(workspaceRoot, 'projects', 'api-customer', 'src');
-const generatorConfig = resolve(workspaceRoot, 'openapi', 'customer.config.json');
-const generatorTemplates = resolve(workspaceRoot, 'openapi', 'templates', 'typescript-angular');
-const cliEntry = resolve(
+export const generatorJar = resolve(generatorRoot, 'target', 'talabat-openapi-generator-1.0.0.jar');
+export const generatedSource = resolve(workspaceRoot, 'projects', 'api-customer', 'src');
+export const generatorConfig = resolve(workspaceRoot, 'openapi', 'customer.config.json');
+export const generatorTemplates = resolve(workspaceRoot, 'openapi', 'templates', 'typescript-angular');
+export const cliEntry = resolve(
   workspaceRoot,
   'node_modules',
   '@openapitools',
@@ -27,7 +27,7 @@ function run(command, args, cwd = workspaceRoot) {
   }
 }
 
-function buildGenerator() {
+export function buildGenerator() {
   const wrapper = resolve(generatorRoot, process.platform === 'win32' ? 'mvnw.cmd' : 'mvnw');
   if (!existsSync(wrapper)) {
     throw new Error(`Maven Wrapper is missing: ${wrapper}`);
@@ -57,19 +57,18 @@ function assertSafeGeneratedSource() {
   }
 }
 
-function cleanGeneratedSource() {
+export function cleanGeneratedSource() {
   assertSafeGeneratedSource();
   rmSync(generatedSource, { recursive: true, force: true });
 }
 
-function generateCustomer() {
+function generateTo(outputDirectory, options = {}) {
   if (!existsSync(generatorJar)) {
     buildGenerator();
   }
   if (!existsSync(cliEntry)) {
     throw new Error('OpenAPI Generator CLI is not installed. Run npm install first.');
   }
-  cleanGeneratedSource();
   run(process.execPath, [
     cliEntry,
     `--custom-generator=${generatorJar}`,
@@ -77,23 +76,35 @@ function generateCustomer() {
     '-c',
     generatorConfig,
     '-o',
-    generatedSource,
+    outputDirectory,
     '-t',
     generatorTemplates,
   ]);
 }
 
-const command = process.argv[2];
-switch (command) {
-  case 'build':
-    buildGenerator();
-    break;
-  case 'clean':
+export function generateCustomer(outputDirectory = generatedSource) {
+  if (outputDirectory === generatedSource) {
     cleanGeneratedSource();
-    break;
-  case 'generate-customer':
-    generateCustomer();
-    break;
-  default:
-    throw new Error('Usage: node tools/api-generator.mjs <build|clean|generate-customer>');
+  }
+  generateTo(outputDirectory);
+}
+
+const isDirectExecution =
+  process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  const command = process.argv[2];
+  switch (command) {
+    case 'build':
+      buildGenerator();
+      break;
+    case 'clean':
+      cleanGeneratedSource();
+      break;
+    case 'generate-customer':
+      generateCustomer();
+      break;
+    default:
+      throw new Error('Usage: node tools/api-generator.mjs <build|clean|generate-customer>');
+  }
 }

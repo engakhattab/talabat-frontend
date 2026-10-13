@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 import { AppError, AppErrorCode } from './app-error';
-import { problemDetailsInterceptor } from './problem-details.interceptor';
+import { problemDetailsInterceptor, publicErrorTitle } from './problem-details.interceptor';
 
 describe('problemDetailsInterceptor', () => {
   let http: HttpClient;
@@ -41,12 +41,16 @@ describe('problemDetailsInterceptor', () => {
       title: 'Customer profile is required',
       detail: 'Create a profile before continuing.',
       isNetworkError: false,
-      rawError: body,
     } satisfies AppError);
   });
 
-  it('degrades an unrecognised backend error code to Unknown', async () => {
-    const body = { title: 'A newer backend error', errorCode: 'FutureErrorCode' };
+  it('degrades an unrecognised backend error code to fixed public copy without raw fields', async () => {
+    const body = {
+      title: 'A newer backend error',
+      detail: 'Backend implementation detail',
+      extensions: { traceId: 'secret-trace' },
+      errorCode: 'FutureErrorCode',
+    };
     const response = firstValueFrom(http.get('/test'));
 
     httpTesting
@@ -56,11 +60,34 @@ describe('problemDetailsInterceptor', () => {
     await expect(response).rejects.toEqual({
       status: 422,
       code: AppErrorCode.Unknown,
-      title: 'A newer backend error',
-      detail: undefined,
+      title: publicErrorTitle,
       isNetworkError: false,
-      rawError: body,
     } satisfies AppError);
+  });
+
+  it('never exposes raw title, detail, extensions, or correlation id for an unknown error', async () => {
+    const body = {
+      title: 'Raw backend title',
+      detail: 'Raw backend detail',
+      status: 503,
+      instance: '/raw/path',
+      extensions: { correlationId: 'secret-correlation', token: 'secret-token' },
+    };
+    const response = firstValueFrom(http.get('/test'));
+
+    httpTesting.expectOne('/test').flush(body, { status: 503, statusText: 'Service Unavailable' });
+
+    const error = await response.then(
+      () => undefined as never,
+      (e: unknown) => e as AppError,
+    );
+    expect(error.status).toBe(503);
+    expect(error.code).toBe(AppErrorCode.Unknown);
+    expect(error.title).toBe(publicErrorTitle);
+    expect(error.detail).toBeUndefined();
+    expect(error.rawError).toBeUndefined();
+    expect(JSON.stringify(error)).not.toContain('Raw backend');
+    expect(JSON.stringify(error)).not.toContain('secret-');
   });
 
   it('uses safe defaults when the response has no Problem Details body', async () => {
@@ -73,7 +100,7 @@ describe('problemDetailsInterceptor', () => {
     await expect(response).rejects.toEqual({
       status: 500,
       code: AppErrorCode.Unknown,
-      title: 'Something went wrong',
+      title: publicErrorTitle,
       detail: undefined,
       isNetworkError: false,
     } satisfies AppError);
@@ -92,7 +119,7 @@ describe('problemDetailsInterceptor', () => {
     } satisfies AppError);
   });
 
-  it('preserves a 422 CheckoutUnavailableResponse body on AppError.rawError', async () => {
+  it('retains only the typed 422 CheckoutUnavailableResponse body on AppError.rawError', async () => {
     const checkoutBody = {
       status: 'unavailable',
       unavailableItems: [
@@ -112,15 +139,15 @@ describe('problemDetailsInterceptor', () => {
     await expect(response).rejects.toEqual({
       status: 422,
       code: AppErrorCode.Unknown,
-      title: 'Something went wrong',
+      title: publicErrorTitle,
       detail: undefined,
       isNetworkError: false,
       rawError: checkoutBody,
     } satisfies AppError);
   });
 
-  it('keeps an unknown 422 body safe without runtime exceptions', async () => {
-    const body = { unexpected: 'shape' };
+  it('drops the raw body for an unknown 422 that is not the typed checkout response', async () => {
+    const body = { unexpected: 'shape', title: 'hidden' };
     const response = firstValueFrom(http.get('/test'));
 
     httpTesting.expectOne('/test').flush(body, { status: 422, statusText: 'Unprocessable Entity' });
@@ -132,8 +159,23 @@ describe('problemDetailsInterceptor', () => {
 
     expect(error.status).toBe(422);
     expect(error.code).toBe(AppErrorCode.Unknown);
+    expect(error.title).toBe(publicErrorTitle);
     expect(error.isNetworkError).toBe(false);
-    expect(error.rawError).toEqual(body);
+    expect(error.rawError).toBeUndefined();
+  });
+
+  it('does not retain a raw body for known non-checkout errors', async () => {
+    const body = { title: 'Cart operation failed', detail: 'Backend detail', errorCode: 'CartExpired' };
+    const response = firstValueFrom(http.get('/test'));
+
+    httpTesting.expectOne('/test').flush(body, { status: 409, statusText: 'Conflict' });
+
+    const error = await response.then(
+      () => undefined as never,
+      (e: unknown) => e as AppError,
+    );
+    expect(error.code).toBe(AppErrorCode.CartExpired);
+    expect(error.rawError).toBeUndefined();
   });
 
   it.each([
@@ -159,7 +201,6 @@ describe('problemDetailsInterceptor', () => {
       title: `${errorCode} occurred`,
       detail: 'Cart operation failed',
       isNetworkError: false,
-      rawError: body,
     } satisfies AppError);
   });
 });

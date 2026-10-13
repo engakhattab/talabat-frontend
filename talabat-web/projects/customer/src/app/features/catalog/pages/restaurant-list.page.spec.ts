@@ -66,6 +66,29 @@ describe('RestaurantListPage', () => {
     await vi.waitFor(() => expect(api.getRestaurants).toHaveBeenCalledTimes(2));
   });
 
+  it('renders feature-owned copy for an unknown backend error without raw text', async () => {
+    const backendError: AppError = {
+      status: 502,
+      code: AppErrorCode.Unknown,
+      title: 'Inventory burst buffer overflowed correlation 7b2f…',
+      detail: 'backend token alice',
+      isNetworkError: false,
+    };
+    api.getRestaurants.mockReturnValue(throwError(() => backendError));
+
+    const fixture = TestBed.createComponent(RestaurantListPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const alert = fixture.nativeElement.querySelector('[role="alert"]') as HTMLElement;
+    expect(alert.textContent).toContain('Restaurants could not be loaded');
+    expect(alert.textContent).toContain('Please try again in a moment.');
+    expect(alert.textContent).not.toContain('Inventory burst');
+    expect(alert.textContent).not.toContain('7b2f');
+    expect(alert.textContent).not.toContain('token alice');
+  });
+
   it('shows the empty state when the API returns no restaurants', async () => {
     api.getRestaurants.mockReturnValue(of(emptyResponse));
 

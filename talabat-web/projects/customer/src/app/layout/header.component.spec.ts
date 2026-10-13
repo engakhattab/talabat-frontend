@@ -34,7 +34,10 @@ describe('HeaderComponent', () => {
         },
         {
           provide: CustomerApiService,
-          useValue: { getProfile: vi.fn().mockReturnValue(of({ fullName: 'Jane Doe' })) },
+          useValue: {
+            getProfile: vi.fn().mockReturnValue(of({ id: 1, fullName: 'Jane Doe', age: 30, phoneNumber: '+20 100 123 4567', addresses: [] })),
+            updateProfile: vi.fn().mockReturnValue(of({ id: 1, fullName: 'Jane Roe', age: 30, phoneNumber: '+20 100 123 4567', addresses: [] })),
+          },
         },
         {
           provide: AddressesApiService,
@@ -73,5 +76,31 @@ describe('HeaderComponent', () => {
     expect(links).toContain('/restaurants');
     expect(links).toContain('/profile');
     expect(links).toContain('/orders');
+  });
+
+  it('greeting reactively updates to the authenticated profile name', async () => {
+    userSignal.set({ subject: 'auth0|123', displayName: 'IDP Display Name', roles: [] as string[] });
+    isAuthenticatedSignal.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Jane Doe');
+    expect(fixture.nativeElement.textContent).not.toContain('IDP Display Name');
+  });
+
+  it('greeting reactively updates when the profile signal changes', async () => {
+    userSignal.set({ subject: 'auth0|123', displayName: null, roles: [] as string[] });
+    isAuthenticatedSignal.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const profileStore = TestBed.inject(ProfileStore);
+    await profileStore.updateProfile({ fullName: 'Jane Roe', age: 30, phoneNumber: '+20 100 123 4567' });
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Jane Roe');
+    expect(fixture.nativeElement.textContent).not.toContain('Jane Doe');
   });
 });

@@ -23,4 +23,22 @@ describe('safeReturnUrl', () => {
   ])('rejects unsafe or malformed value %s', (value) => {
     expect(safeReturnUrl(value)).toBe(AUTH_FALLBACK_URL);
   });
+
+  it.each([
+    '/restaurants?redirect_uri=https://evil.example',
+    '/restaurants?redirect_uri=//evil.example',
+    '/restaurants?next=javascript:alert(1)',
+    '/restaurants?returnUrl=https%3A%2F%2Fevil.example',
+  ])('keeps query values as internal parameters, not redirect targets: %s', (value) => {
+    expect(safeReturnUrl(value)).toBe(value);
+  });
+
+  it.each([
+    '/restaurants#redirect_uri=https://evil.example',
+    '/restaurants#/account?returnTo=https://evil.example',
+  ])('keeps hash fragments apart from the navigation target: %s', (value) => {
+    const result = safeReturnUrl(value);
+    expect(result).toBe(value);
+    expect(result.startsWith('/restaurants')).toBe(true);
+  });
 });

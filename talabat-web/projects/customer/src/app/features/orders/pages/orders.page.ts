@@ -26,11 +26,11 @@ import { firstValueFrom } from 'rxjs';
         <div class="mt-6 grid min-h-56 place-items-center rounded-food-md bg-white shadow-food-sm">
           <tal-spinner label="Loading your orders" />
         </div>
-      } @else if (ordersError(); as error) {
+      } @else if (ordersError()) {
         <div class="mt-6">
           <tal-error-state
-            [description]="error.detail ?? 'Check your connection and try again.'"
-            [title]="error.title"
+            [description]="ordersErrorDescription()"
+            [title]="ordersErrorTitle()"
             (retry)="retryOrders()"
           />
         </div>
@@ -136,6 +136,18 @@ export class OrdersPage {
           isNetworkError: false,
         };
   });
+
+  protected readonly ordersErrorTitle = computed(() =>
+    this.ordersError()?.isNetworkError
+      ? 'Cannot reach the server'
+      : 'Your orders could not be loaded',
+  );
+
+  protected readonly ordersErrorDescription = computed(() =>
+    this.ordersError()?.isNetworkError
+      ? 'Check your connection and try again.'
+      : 'Please try again in a moment.',
+  );
 
   protected retryOrders(): void {
     this.orders.reload();
