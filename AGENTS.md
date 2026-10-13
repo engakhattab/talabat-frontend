@@ -3,6 +3,11 @@
 Full project context (workspace map, rules, commands, gotchas, current status) lives in `CLAUDE.md`. Read it first.
 The binding rules are in `.specify/memory/constitution.md` (v1.1.0); when anything conflicts, the constitution wins.
 
+## Git attribution (strict, permanent)
+
+Never add Claude, Anthropic, or AI attribution as git commit author or via `Co-authored-by` trailer. All commits must
+strictly use the local git config user and email with zero AI co-authorship metadata.
+
 <!-- SPECKIT START -->
 Current roadmap increment:
 

@@ -46,6 +46,9 @@ Customer app layout: `projects/customer/src/app/{core,layout,ui,features/<featur
   symbol per file; barrels only at library roots. Strict TS — no `any`, no non-null assertions on API data.
 - **Git**: clean baseline before each phase; contract/client regeneration in its own commit, separate from features;
   Conventional Commits; never weaken or delete tests to pass a gate.
+- **Git attribution (strict, permanent):** Never add Claude, Anthropic, or AI attribution as git commit author or via
+  `Co-authored-by` trailer. All commits must strictly use the local git config user and email with zero AI
+  co-authorship metadata.
 
 ## Commands (from `talabat-web/`)
 
@@ -90,7 +93,7 @@ npm run e2e:preflight
 
 ## Current status and next work (2026-10-13)
 
-- `master` @ `cf27497`. Customer app phases 1–10 are committed; Phase 11 release hardening (`specs/005-release-hardening`)
+- `master` @ `652c645`. Customer app phases 1–10 are committed; Phase 11 release hardening (`specs/005-release-hardening`)
   is committed but tasks T036 (manual address acceptance), T038 (runbook finalization) and T039 (ordered release gate)
   are open, and nothing has been re-verified since the move to this machine.
 - The Delivery app is no longer blocked on the backend: applicant status/profile, agent status, Admin approval, and
