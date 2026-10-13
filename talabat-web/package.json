@@ -12,7 +12,7 @@
     "api:gen:customer": "node tools/api-generator.mjs generate-customer",
     "api:gen": "npm run api:copy && npm run api:generator:build && npm run api:gen:customer",
     "api:verify": "node tools/verify-generated-api.mjs",
-    "test:openapi-tools": "npm run api:generator:build && node --test tools/copy-openapi.test.mjs tools/verify-generated-api.test.mjs",
+    "test:openapi-tools": "npm run api:generator:build && node --test tools/api-generator.test.mjs tools/copy-openapi.test.mjs tools/verify-generated-api.test.mjs",
     "build:customer:production": "ng build customer --configuration production --stats-json && node tools/verify-customer-bundle.mjs",
     "verify:customer-bundle": "node tools/verify-customer-bundle.mjs",
     "e2e:preflight": "playwright test --config playwright.config.ts e2e/preflight.spec.ts",
