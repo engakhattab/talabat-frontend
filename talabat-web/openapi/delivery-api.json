@@ -5,6 +5,200 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/agent/me/application": {
+      "get": {
+        "tags": [
+          "ApplicantProfile"
+        ],
+        "operationId": "GetDeliveryApplicantApplication",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryApplicantApplicationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "delivery.api"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/agent/me/profile": {
+      "get": {
+        "tags": [
+          "ApplicantProfile"
+        ],
+        "operationId": "GetDeliveryApplicantProfile",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryApplicantProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "delivery.api"
+            ]
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "ApplicantProfile"
+        ],
+        "operationId": "UpdateDeliveryApplicantProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDeliveryApplicantProfileRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDeliveryApplicantProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryApplicantProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "delivery.api"
+            ]
+          }
+        ]
+      }
+    },
     "/api/agent/deliveries/active": {
       "get": {
         "tags": [
@@ -828,6 +1022,73 @@
         ]
       }
     },
+    "/api/agent/status": {
+      "get": {
+        "tags": [
+          "AgentStatus"
+        ],
+        "operationId": "GetCurrentDeliveryAgentStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryAgentStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "delivery.api"
+            ]
+          }
+        ]
+      }
+    },
     "/api/agent/status/online": {
       "put": {
         "tags": [
@@ -961,13 +1222,18 @@
         "required": [
           "id",
           "orderId",
-          "customerId",
           "restaurantId",
           "status",
-          "street",
-          "city",
-          "buildingNumber",
-          "floor",
+          "restaurantName",
+          "pickupStreet",
+          "pickupCity",
+          "pickupBuildingNumber",
+          "pickupFloor",
+          "dropOffStreet",
+          "dropOffCity",
+          "dropOffBuildingNumber",
+          "dropOffFloor",
+          "customerPhoneNumber",
           "assignedAt"
         ],
         "type": "object",
@@ -982,11 +1248,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "customerId": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": "integer",
-            "format": "int32"
-          },
           "restaurantId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": "integer",
@@ -995,16 +1256,36 @@
           "status": {
             "$ref": "#/components/schemas/DeliveryStatus"
           },
-          "street": {
+          "restaurantName": {
             "type": "string"
           },
-          "city": {
+          "pickupStreet": {
             "type": "string"
           },
-          "buildingNumber": {
+          "pickupCity": {
             "type": "string"
           },
-          "floor": {
+          "pickupBuildingNumber": {
+            "type": "string"
+          },
+          "pickupFloor": {
+            "type": "string",
+            "nullable": true
+          },
+          "dropOffStreet": {
+            "type": "string"
+          },
+          "dropOffCity": {
+            "type": "string"
+          },
+          "dropOffBuildingNumber": {
+            "type": "string"
+          },
+          "dropOffFloor": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerPhoneNumber": {
             "type": "string",
             "nullable": true
           },
@@ -1015,11 +1296,78 @@
           }
         }
       },
+      "AgentApprovalStatus": {
+        "type": "integer"
+      },
+      "DeliveryAgentStatus": {
+        "type": "integer"
+      },
+      "DeliveryAgentStatusResponse": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/DeliveryAgentStatus"
+          }
+        }
+      },
+      "DeliveryApplicantApplicationResponse": {
+        "required": [
+          "applicationStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "applicationStatus": {
+            "$ref": "#/components/schemas/AgentApprovalStatus"
+          }
+        }
+      },
+      "DeliveryApplicantProfileResponse": {
+        "required": [
+          "fullName",
+          "phoneNumber",
+          "vehicleType",
+          "applicationStatus",
+          "deliveryAgentStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "vehicleType": {
+            "type": "integer",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/VehicleType"
+              }
+            ],
+            "nullable": true
+          },
+          "applicationStatus": {
+            "$ref": "#/components/schemas/AgentApprovalStatus"
+          },
+          "deliveryAgentStatus": {
+            "type": "integer",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DeliveryAgentStatus"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
       "DeliveryHistoryResponse": {
         "required": [
           "id",
           "orderId",
-          "customerId",
           "restaurantId",
           "status",
           "street",
@@ -1037,11 +1385,6 @@
             "format": "int32"
           },
           "orderId": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": "integer",
-            "format": "int32"
-          },
-          "customerId": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": "integer",
             "format": "int32"
@@ -1121,7 +1464,9 @@
           "orderId",
           "restaurantId",
           "status",
-          "city",
+          "restaurantName",
+          "pickupStreet",
+          "pickupCity",
           "createdAt"
         ],
         "type": "object",
@@ -1144,7 +1489,13 @@
           "status": {
             "$ref": "#/components/schemas/DeliveryStatus"
           },
-          "city": {
+          "restaurantName": {
+            "type": "string"
+          },
+          "pickupStreet": {
+            "type": "string"
+          },
+          "pickupCity": {
             "type": "string"
           },
           "createdAt": {
@@ -1181,6 +1532,22 @@
           }
         }
       },
+      "UpdateDeliveryApplicantProfileRequest": {
+        "required": [
+          "fullName",
+          "phoneNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "UpdateLocationRequest": {
         "required": [
           "latitude",
@@ -1199,6 +1566,9 @@
             "format": "double"
           }
         }
+      },
+      "VehicleType": {
+        "type": "integer"
       }
     },
     "securitySchemes": {
@@ -1221,6 +1591,9 @@
     }
   },
   "tags": [
+    {
+      "name": "ApplicantProfile"
+    },
     {
       "name": "Deliveries"
     },
