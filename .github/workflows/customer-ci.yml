@@ -1,0 +1,138 @@
+name: Customer CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['master']
+  # Manual trigger for the gated live-e2e job below (it runs only on workflow_dispatch/schedule).
+  # NOTE: that job only probes already-running services on localhost; it does not start the
+  # backend or the SPA, so it needs a runner where those services are running.
+  workflow_dispatch:
+
+concurrency:
+  group: customer-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend-validation:
+    name: Frontend validation
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: talabat-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: talabat-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Stage openapi-tools
+        run: npm run test:openapi-tools
+        timeout-minutes: 3
+
+      - name: Stage generated-client verify
+        run: npm run api:verify
+        timeout-minutes: 3
+
+      - name: Stage core-config tests
+        run: npx ng test core-config --watch=false
+        timeout-minutes: 2
+
+      - name: Stage core-auth tests
+        run: npx ng test core-auth --watch=false
+        timeout-minutes: 2
+
+      - name: Stage core-http tests
+        run: npx ng test core-http --watch=false
+        timeout-minutes: 2
+
+      - name: Stage shared-ui tests
+        run: npx ng test shared-ui --watch=false
+        timeout-minutes: 2
+
+      - name: Stage shared-util tests
+        run: npx ng test shared-util --watch=false
+        timeout-minutes: 2
+
+      - name: Stage customer tests
+        run: npx ng test customer --watch=false
+        timeout-minutes: 2
+
+      - name: Stage production build and bundle audit
+        run: npm run build:customer:production
+        timeout-minutes: 2
+
+  live-e2e:
+    name: Live E2E (gated)
+    runs-on: ubuntu-latest
+    needs: frontend-validation
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    concurrency:
+      group: customer-e2e-shared-environment
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: talabat-web
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+      E2E__Provisioning__Enabled: 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: talabat-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium only
+        run: npx playwright install --with-deps chromium
+
+      - name: Start services and report readiness
+        run: |
+          echo "::group::Identity readiness"
+          curl -fsS --retry 30 --retry-delay 2 https://localhost:7237/.well-known/openid-configuration
+          echo "::endgroup::"
+          echo "::group::Customer API readiness"
+          curl -fsS --retry 30 --retry-delay 2 https://localhost:7056/health
+          echo "::endgroup::"
+          echo "::group::SPA config readiness"
+          curl -fsS --retry 30 --retry-delay 2 http://localhost:4200/assets/config.json
+          echo "::endgroup::"
+        env:
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+
+      - name: E2E preflight
+        run: npm run e2e:preflight
+        timeout-minutes: 2
+        env:
+          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
+          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
+
+      - name: E2E execution
+        run: npm run e2e
+        timeout-minutes: 4
+        env:
+          E2E_CUSTOMER_EMAIL: ${{ secrets.E2E_CUSTOMER_EMAIL }}
+          E2E_CUSTOMER_PASSWORD: ${{ secrets.E2E_CUSTOMER_PASSWORD }}
+
+      - name: Upload sanitized failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-e2e-failure
+          path: |
+            talabat-web/playwright-report/
+            talabat-web/test-results/
+          retention-days: 3
+          if-no-files-found: ignore
